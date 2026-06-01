@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
+import AppLayout from "@/components/AppLayout"
 
 const inter = Inter({
   variable: "--font-inter",
@@ -40,7 +41,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body className="min-h-dvh bg-background text-foreground">
-        {children}
+        <AppLayout>{children}</AppLayout>
       </body>
     </html>
   )

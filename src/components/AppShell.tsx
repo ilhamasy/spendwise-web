@@ -25,9 +25,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             {children}
           </main>
         </div>
-        <div className="lg:hidden">
-          <BottomNav />
-        </div>
+        <BottomNav />
         <FAB />
       </div>
     </AuthGuard>

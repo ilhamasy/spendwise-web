@@ -18,14 +18,6 @@ export default function DashboardPage() {
             Here&apos;s what&apos;s happening with your finances.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="rounded-full border border-border px-4 py-2 text-xs font-medium text-foreground hover:bg-muted transition-colors">
-            Manage widgets
-          </button>
-          <button className="rounded-full bg-primary px-4 py-2 text-xs font-medium text-white hover:bg-primary/90 transition-colors">
-            + Add new widget
-          </button>
-        </div>
       </div>
 
       {/* KPI Grid */}
