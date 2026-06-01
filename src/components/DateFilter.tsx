@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Calendar, X } from 'lucide-react'
 
 export type FilterPeriod = 'week' | 'month' | 'year' | 'custom'
@@ -70,54 +70,54 @@ export default function DateFilter({
   onPeriodChange,
   onCustomChange,
 }: DateFilterProps) {
-  const [start, setStart] = useState(customStart)
-  const [end, setEnd] = useState(customEnd)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [start, setStart] = useState('')
+  const [end, setEnd] = useState('')
   const [error, setError] = useState('')
+  const pickerRef = useRef<HTMLDivElement>(null)
   const today = new Date().toISOString().split('T')[0]
 
-  function handleStartChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setError('')
-    const s = e.target.value
-    setStart(s)
-    if (s && end) {
-      validateAndApply(s, end)
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setPickerOpen(false)
+      }
     }
-  }
-
-  function handleEndChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setError('')
-    const e2 = e.target.value
-    setEnd(e2)
-    if (start && e2) {
-      validateAndApply(start, e2)
+    if (pickerOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
     }
-  }
+  }, [pickerOpen])
 
-  function validateAndApply(s: string, e2: string) {
-    if (new Date(s) > new Date(e2)) {
+  function applyCustom() {
+    setError('')
+    if (!start || !end) {
+      setError('Select both dates')
+      return
+    }
+    if (new Date(start) > new Date(end)) {
       setError('Start date must be before end date')
       return
     }
-    const diff = (new Date(e2).getTime() - new Date(s).getTime()) / 86400000
+    const diff = (new Date(end).getTime() - new Date(start).getTime()) / 86400000
     if (diff > 365) {
       setError('Date range cannot exceed 365 days')
       return
     }
-    if (new Date(s) < new Date(minDate)) {
+    if (new Date(start) < new Date(minDate)) {
       setError('Start date cannot be before first transaction')
       return
     }
     setError('')
     onPeriodChange('custom')
-    onCustomChange(s, e2)
+    onCustomChange(start, end)
+    setPickerOpen(false)
   }
 
   function handlePeriodClick(key: FilterPeriod) {
-    if (key !== 'custom') {
-      setError('')
-      onPeriodChange(key)
-    }
-    // 'custom' is triggered by date picker change, not button click
+    setPickerOpen(false)
+    setError('')
+    onPeriodChange(key)
   }
 
   const hasCustomRange = period === 'custom' && customStart && customEnd
@@ -141,28 +141,58 @@ export default function DateFilter({
             {label}
           </button>
         ))}
-        <div className="relative inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-all">
-          <Calendar className="h-3.5 w-3.5" />
-          <input
-            type="date"
-            value={start}
-            min={minDate}
-            max={end || today}
-            onChange={handleStartChange}
-            className="absolute inset-0 cursor-pointer opacity-0"
-          />
-        </div>
-        <span className="mx-1 text-xs text-muted-foreground">to</span>
-        <div className="relative inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-all">
-          <Calendar className="h-3.5 w-3.5" />
-          <input
-            type="date"
-            value={end}
-            min={start || minDate}
-            max={today}
-            onChange={handleEndChange}
-            className="absolute inset-0 cursor-pointer opacity-0"
-          />
+
+        <div ref={pickerRef} className="relative">
+          <button
+            onClick={() => setPickerOpen(!pickerOpen)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-all"
+          >
+            <Calendar className="h-3.5 w-3.5" />
+          </button>
+
+          {pickerOpen && (
+            <div className="absolute left-0 top-full z-50 mt-2 w-64 rounded-xl border border-border bg-card p-4 shadow-lg">
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-muted-foreground">Start date</label>
+                  <input
+                    type="date"
+                    value={start}
+                    min={minDate}
+                    max={end || today}
+                    onChange={(e) => setStart(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-muted-foreground">End date</label>
+                  <input
+                    type="date"
+                    value={end}
+                    min={start || minDate}
+                    max={today}
+                    onChange={(e) => setEnd(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+                  />
+                </div>
+                {error && <p className="text-xs text-red-500">{error}</p>}
+                <div className="flex gap-2">
+                  <button
+                    onClick={applyCustom}
+                    className="flex-1 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white hover:bg-primary/90"
+                  >
+                    Apply
+                  </button>
+                  <button
+                    onClick={() => setPickerOpen(false)}
+                    className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground hover:bg-muted"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {hasCustomRange && (
@@ -177,8 +207,6 @@ export default function DateFilter({
           </span>
         )}
       </div>
-
-      {error && <p className="mt-2 text-xs text-red-500">{error}</p>}
     </div>
   )
 }
