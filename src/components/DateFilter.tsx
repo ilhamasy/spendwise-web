@@ -107,7 +107,7 @@ export default function DateFilter({
     : ''
 
   return (
-    <div>
+    <div ref={pickerRef} className="relative">
       <div className="flex flex-wrap items-center gap-2">
         {PERIODS.map(({ key, label }) => (
           <button
@@ -123,27 +123,13 @@ export default function DateFilter({
           </button>
         ))}
 
-        <div ref={pickerRef} className="relative" onMouseDown={(e) => e.stopPropagation()}>
+        <div onMouseDown={(e) => e.stopPropagation()}>
           <button
             onClick={() => setPickerOpen(!pickerOpen)}
             className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-all"
           >
             <Calendar className="h-3.5 w-3.5" />
           </button>
-
-          {pickerOpen && (
-            <div className="absolute left-0 top-full z-50 mt-2" onMouseDown={(e) => e.stopPropagation()}>
-              <DateRangePicker
-                startDate={startDate}
-                endDate={endDate}
-                minDate={minDate}
-                maxDate={today}
-                onChange={(s, e) => { setStartDate(s); setEndDate(e) }}
-                onApply={handleApply}
-                onCancel={() => setPickerOpen(false)}
-              />
-            </div>
-          )}
         </div>
 
         {hasCustomRange && (
@@ -158,6 +144,20 @@ export default function DateFilter({
           </span>
         )}
       </div>
+
+      {pickerOpen && (
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 sm:left-auto sm:w-auto" onMouseDown={(e) => e.stopPropagation()}>
+          <DateRangePicker
+            startDate={startDate}
+            endDate={endDate}
+            minDate={minDate}
+            maxDate={today}
+            onChange={(s, e) => { setStartDate(s); setEndDate(e) }}
+            onApply={handleApply}
+            onCancel={() => setPickerOpen(false)}
+          />
+        </div>
+      )}
     </div>
   )
 }

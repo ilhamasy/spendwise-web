@@ -35,7 +35,7 @@ export default function KpiCard({ title, value, change, isPositive, icon }: KpiC
           {change}
         </span>
       </div>
-      <p className="mt-4 text-2xl font-bold text-foreground">{value}</p>
+      <p className="mt-4 text-base font-bold text-foreground sm:text-2xl">{value}</p>
       <p className="mt-0.5 text-sm text-muted-foreground">{title}</p>
     </div>
   )

@@ -115,7 +115,7 @@ export default function DateRangePicker({
   const canApply = startDate && endDate
 
   return (
-    <div className="w-[520px] rounded-2xl border border-border bg-card p-4 shadow-xl">
+    <div className="w-full sm:w-[520px] max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-card p-4 shadow-xl">
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
         <button className="rounded-lg bg-primary px-3 py-1.5 text-[11px] font-semibold text-white">
@@ -139,9 +139,11 @@ export default function DateRangePicker({
       </div>
 
       {/* Dual Calendar */}
-      <div className="mt-3 grid grid-cols-2 gap-6">
-        {renderMonth(leftYear, leftMonth)}
-        {renderMonth(rightYear, rightMonth)}
+      <div className="mt-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {renderMonth(leftYear, leftMonth)}
+          <div className="hidden sm:block">{renderMonth(rightYear, rightMonth)}</div>
+        </div>
       </div>
 
       {/* Footer */}
