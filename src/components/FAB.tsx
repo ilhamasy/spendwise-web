@@ -1,0 +1,26 @@
+'use client'
+
+import { usePathname } from 'next/navigation'
+
+const FAB_ROUTES = ['/dashboard', '/transactions']
+
+export default function FAB() {
+  const pathname = usePathname()
+
+  if (!FAB_ROUTES.includes(pathname)) return null
+
+  return (
+    <button
+      className="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg shadow-indigo-600/25 transition-all hover:bg-indigo-700 hover:shadow-indigo-600/40 active:scale-95 dark:bg-indigo-500 dark:shadow-indigo-500/25 dark:hover:bg-indigo-400"
+      aria-label="Add transaction"
+      onClick={() => {
+        // TODO: Implement in SW-005
+      }}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 5v14" />
+        <path d="M5 12h14" />
+      </svg>
+    </button>
+  )
+}
