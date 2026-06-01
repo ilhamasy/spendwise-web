@@ -1,56 +1,93 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
+import { db } from '@/lib/db'
+import { getAllCategories } from '@/lib/category-service'
+import { formatCurrency } from '@/lib/currency'
 
-const DATA = [
-  { name: 'Cafe & Restaurant', value: 35, color: '#6e44ff' },
-  { name: 'Entertainment', value: 25, color: '#f59e0b' },
-  { name: 'Shopping', value: 20, color: '#22c55e' },
-  { name: 'Transport', value: 12, color: '#3b82f6' },
-  { name: 'Health', value: 8, color: '#ef4444' },
-]
+const TOP_N = 5
 
-export default function BudgetCard() {
+interface Props {
+  year: number
+}
+
+export default function BudgetCard({ year }: Props) {
+  const [data, setData] = useState<{ name: string; value: number; color: string }[]>([])
+  const [total, setTotal] = useState(0)
+
+  useEffect(() => {
+    async function load() {
+      const [allTx, categories] = await Promise.all([
+        db.transactions.toArray(),
+        getAllCategories('expense'),
+      ])
+      const yearly = allTx.filter((t) => t.type === 'expense' && t.occurredAt.startsWith(String(year)))
+      const colorMap = new Map(categories.map((c) => [c.id, c.color || '#6b7280']))
+
+      const grouped = new Map<string, { total: number; name: string; color: string }>()
+      yearly.forEach((tx) => {
+        const cat = categories.find((c) => c.id === tx.categoryId)
+        const key = tx.categoryId
+        if (!grouped.has(key)) {
+          grouped.set(key, { total: 0, name: cat?.name || 'Unknown', color: colorMap.get(key) || '#6b7280' })
+        }
+        grouped.get(key)!.total += tx.amount
+      })
+
+      const sorted = [...grouped.values()].sort((a, b) => b.total - a.total)
+      const top = sorted.slice(0, TOP_N)
+      const otherTotal = sorted.slice(TOP_N).reduce((s, v) => s + v.total, 0)
+      if (otherTotal > 0) top.push({ name: 'Other', total: otherTotal, color: '#9ca3af' })
+
+      setData(top.map((v) => ({ name: v.name, value: v.total, color: v.color })))
+      setTotal(top.reduce((s, v) => s + v.total, 0))
+    }
+    load()
+  }, [year])
+
+  if (data.length === 0) {
+    return (
+      <div className="flex h-full flex-col rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <h3 className="text-base font-semibold text-foreground">Budget</h3>
+        <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+          No expense data for {year}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-full flex-col rounded-2xl border border-border bg-card p-5 shadow-sm">
       <h3 className="text-base font-semibold text-foreground">Budget</h3>
-
       <div className="relative mt-4 flex flex-1 items-center justify-center">
         <div className="h-48 w-48">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie
-                data={DATA}
-                cx="50%"
-                cy="50%"
-                innerRadius={64}
-                outerRadius={96}
-                dataKey="value"
-                strokeWidth={0}
-              >
-                {DATA.map((entry) => (
-                  <Cell key={entry.name} fill={entry.color} />
-                ))}
+              <Pie data={data} cx="50%" cy="50%" innerRadius={64} outerRadius={96} dataKey="value" strokeWidth={0}>
+                {data.map((e) => (<Cell key={e.name} fill={e.color} />))}
               </Pie>
             </PieChart>
           </ResponsiveContainer>
         </div>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <p className="text-xs text-muted-foreground">Total for month</p>
-          <p className="text-lg font-bold text-foreground">$5,950</p>
+          <p className="text-xs text-muted-foreground">Total for year</p>
+          <p className="text-base font-bold text-foreground">{formatCurrency(total)}</p>
         </div>
       </div>
-
       <div className="mt-4 space-y-2.5">
-        {DATA.map((item) => (
-          <div key={item.name} className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-              <span className="text-xs text-muted-foreground">{item.name}</span>
+        {data.map((item) => {
+          const pct = total > 0 ? Math.round((item.value / total) * 100) : 0
+          return (
+            <div key={item.name} className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                <span className="text-xs text-muted-foreground">{item.name}</span>
+              </div>
+              <span className="text-xs font-medium text-foreground">{pct}% - {formatCurrency(item.value)}</span>
             </div>
-            <span className="text-xs font-medium text-foreground">{item.value}%</span>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

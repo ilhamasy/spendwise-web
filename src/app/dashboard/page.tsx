@@ -35,6 +35,7 @@ export default function DashboardPage() {
   const [incomeChange, setIncomeChange] = useState({ change: '+0%', isPositive: true })
   const [expenseChange, setExpenseChange] = useState({ change: '+0%', isPositive: true })
   const [savingsChange, setSavingsChange] = useState({ change: '+0%', isPositive: true })
+  const [chartYear, setChartYear] = useState(new Date().getFullYear())
 
   useEffect(() => {
     async function load() {
@@ -118,9 +119,9 @@ export default function DashboardPage() {
       {/* Charts */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <MoneyFlowCard />
+          <MoneyFlowCard year={chartYear} onYearChange={setChartYear} />
         </div>
-        <BudgetCard />
+        <BudgetCard year={chartYear} />
       </div>
 
       {/* Bottom: Transactions + Goals */}

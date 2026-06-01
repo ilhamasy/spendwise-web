@@ -1,42 +1,65 @@
 'use client'
 
-const GOALS = [
-  { title: 'New MacBook Pro', target: 2500, current: 1500, color: '#6e44ff' },
-  { title: 'Vacation Fund', target: 3000, current: 1200, color: '#f59e0b' },
-  { title: 'Emergency', target: 10000, current: 4500, color: '#22c55e' },
-]
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { getAllGoals } from '@/lib/goal-service'
+import { formatCurrency } from '@/lib/currency'
+import type { SavingGoal } from '@/types'
 
 export default function SavingGoalsCard() {
+  const [goals, setGoals] = useState<SavingGoal[]>([])
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    (async () => {
+      setGoals((await getAllGoals('active')).slice(0, 3))
+      setLoaded(true)
+    })()
+  }, [])
+
+  if (!loaded) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <div className="h-5 w-28 animate-pulse rounded bg-muted" />
+        <div className="mt-5 space-y-5">{[1, 2, 3].map((i) => (<div key={i} className="space-y-2"><div className="h-4 w-3/4 animate-pulse rounded bg-muted" /><div className="h-2 w-full animate-pulse rounded bg-muted" /></div>))}</div>
+      </div>
+    )
+  }
+
   return (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <h3 className="text-base font-semibold text-foreground">Saving Goals</h3>
-        <button className="text-xs font-medium text-primary hover:underline">See all</button>
+        {goals.length > 0 && (
+          <Link href="/goals" className="text-xs font-medium text-primary hover:underline">See all</Link>
+        )}
       </div>
-
-      <div className="mt-5 space-y-5">
-        {GOALS.map((goal) => {
-          const progress = Math.round((goal.current / goal.target) * 100)
-          const remaining = goal.target - goal.current
-          return (
-            <div key={goal.title}>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-foreground">{goal.title}</p>
-                <span className="text-xs font-semibold text-foreground">{progress}%</span>
+      {goals.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-8 text-sm text-muted-foreground">
+          <p>No saving goals yet</p>
+          <Link href="/goals" className="mt-1 text-primary hover:underline">Create your first goal</Link>
+        </div>
+      ) : (
+        <div className="mt-5 space-y-5">
+          {goals.map((goal) => {
+            const progress = Math.min(Math.round((goal.currentSaved / goal.targetAmount) * 100), 100)
+            return (
+              <div key={goal.id}>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-foreground">{goal.name}</p>
+                  <span className="text-xs font-semibold text-foreground">{progress}%</span>
+                </div>
+                <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div className="h-full rounded-full bg-gradient-to-r from-green-400 to-green-500 transition-all" style={{ width: `${progress}%` }} />
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {formatCurrency(goal.currentSaved)} of {formatCurrency(goal.targetAmount)}
+                </p>
               </div>
-              <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{ width: `${progress}%`, backgroundColor: goal.color }}
-                />
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                ${remaining.toLocaleString()} left to reach ${goal.target.toLocaleString()}
-              </p>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
