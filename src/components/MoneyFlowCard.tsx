@@ -11,6 +11,29 @@ interface Props {
   year: number
 }
 
+function CustomTooltip({ active, payload, label }: {
+  active?: boolean
+  payload?: { name: string; value: number; color: string }[]
+  label?: string
+}) {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="rounded-xl border border-border bg-card px-3 py-2 shadow-lg">
+      <p className="text-xs font-semibold text-foreground mb-1.5">{label}</p>
+      {payload.map((entry) => (
+        <div key={entry.name} className="flex items-center gap-2 text-[11px]">
+          <span
+            className="inline-block h-2.5 w-2.5 rounded-full"
+            style={{ backgroundColor: entry.name === 'income' ? '#22c55e' : '#ef4444' }}
+          />
+          <span className="text-muted-foreground capitalize">{entry.name}</span>
+          <span className="ml-auto font-medium text-foreground">{formatCurrency(entry.value)}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function MoneyFlowCard({ year }: Props) {
   const [data, setData] = useState<{ month: string; income: number; expense: number }[]>([])
 
@@ -64,7 +87,7 @@ export default function MoneyFlowCard({ year }: Props) {
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e8e9ed" />
               <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#7e8494' }} />
               <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#7e8494' }} />
-              <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
               <Bar dataKey="income" fill="#22c55e" radius={[8, 8, 0, 0]} maxBarSize={28} />
               <Bar dataKey="expense" fill="#ef4444" radius={[8, 8, 0, 0]} maxBarSize={28} />
             </BarChart>
