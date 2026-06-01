@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 
 interface AuthUser {
   id: string
@@ -18,7 +18,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  isLoading: false,
+  isLoading: true,
   login: async () => {},
   register: async () => {},
   logout: () => {},
@@ -51,11 +51,6 @@ function saveUsers(users: StoredUser[]) {
   localStorage.setItem('spendwise-users', JSON.stringify(users))
 }
 
-function getSession(): string | null {
-  if (typeof window === 'undefined') return null
-  return localStorage.getItem('spendwise-session')
-}
-
 function setSession(userId: string) {
   localStorage.setItem('spendwise-session', userId)
 }
@@ -64,20 +59,27 @@ function clearSession() {
   localStorage.removeItem('spendwise-session')
 }
 
-function loadUser(): AuthUser | null {
-  const sessionId = getSession()
-  if (!sessionId) return null
-  const users = getUsers()
-  const found = users.find((u) => u.id === sessionId)
-  if (found) {
-    return { id: found.id, name: found.name, email: found.email }
-  }
-  return null
+function getSession(): string | null {
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem('spendwise-session')
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(loadUser)
-  const [isLoading] = useState(false)
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const sessionId = getSession()
+    if (sessionId) {
+      const users = getUsers()
+      const found = users.find((u) => u.id === sessionId)
+      if (found) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setUser({ id: found.id, name: found.name, email: found.email })
+      }
+    }
+    setIsLoading(false)
+  }, [])
 
   const login = useCallback(async (email: string, password: string) => {
     const users = getUsers()
