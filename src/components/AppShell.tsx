@@ -18,7 +18,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <AuthGuard>
       <div className="flex min-h-dvh flex-col">
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-24">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-32">
           {children}
         </main>
         <BottomNav />
