@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Calendar, X } from 'lucide-react'
+import DateRangePicker from './DateRangePicker'
 
 export type FilterPeriod = 'week' | 'month' | 'year' | 'custom'
 
@@ -52,8 +53,7 @@ export function getChartYear(period: FilterPeriod, customStart: string, customEn
 
 function formatDateLabel(dateStr: string): string {
   if (!dateStr) return ''
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 const PERIODS: { key: FilterPeriod; label: string }[] = [
@@ -71,9 +71,8 @@ export default function DateFilter({
   onCustomChange,
 }: DateFilterProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
-  const [start, setStart] = useState('')
-  const [end, setEnd] = useState('')
-  const [error, setError] = useState('')
+  const [startDate, setStartDate] = useState<Date | null>(customStart ? new Date(customStart) : null)
+  const [endDate, setEndDate] = useState<Date | null>(customEnd ? new Date(customEnd) : null)
   const pickerRef = useRef<HTMLDivElement>(null)
   const today = new Date().toISOString().split('T')[0]
 
@@ -89,34 +88,16 @@ export default function DateFilter({
     }
   }, [pickerOpen])
 
-  function applyCustom() {
-    setError('')
-    if (!start || !end) {
-      setError('Select both dates')
-      return
-    }
-    if (new Date(start) > new Date(end)) {
-      setError('Start date must be before end date')
-      return
-    }
-    const diff = (new Date(end).getTime() - new Date(start).getTime()) / 86400000
-    if (diff > 365) {
-      setError('Date range cannot exceed 365 days')
-      return
-    }
-    if (new Date(start) < new Date(minDate)) {
-      setError('Start date cannot be before first transaction')
-      return
-    }
-    setError('')
+  function handleApply(start: Date, end: Date) {
     onPeriodChange('custom')
-    onCustomChange(start, end)
+    onCustomChange(start.toISOString().split('T')[0], end.toISOString().split('T')[0])
+    setStartDate(start)
+    setEndDate(end)
     setPickerOpen(false)
   }
 
   function handlePeriodClick(key: FilterPeriod) {
     setPickerOpen(false)
-    setError('')
     onPeriodChange(key)
   }
 
@@ -151,46 +132,16 @@ export default function DateFilter({
           </button>
 
           {pickerOpen && (
-            <div className="absolute left-0 top-full z-50 mt-2 w-64 rounded-xl border border-border bg-card p-4 shadow-lg">
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-muted-foreground">Start date</label>
-                  <input
-                    type="date"
-                    value={start}
-                    min={minDate}
-                    max={end || today}
-                    onChange={(e) => setStart(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-muted-foreground">End date</label>
-                  <input
-                    type="date"
-                    value={end}
-                    min={start || minDate}
-                    max={today}
-                    onChange={(e) => setEnd(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
-                  />
-                </div>
-                {error && <p className="text-xs text-red-500">{error}</p>}
-                <div className="flex gap-2">
-                  <button
-                    onClick={applyCustom}
-                    className="flex-1 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white hover:bg-primary/90"
-                  >
-                    Apply
-                  </button>
-                  <button
-                    onClick={() => setPickerOpen(false)}
-                    className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground hover:bg-muted"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
+            <div className="absolute left-0 top-full z-50 mt-2">
+              <DateRangePicker
+                startDate={startDate}
+                endDate={endDate}
+                minDate={minDate}
+                maxDate={today}
+                onChange={(s, e) => { setStartDate(s); setEndDate(e) }}
+                onApply={handleApply}
+                onCancel={() => setPickerOpen(false)}
+              />
             </div>
           )}
         </div>
