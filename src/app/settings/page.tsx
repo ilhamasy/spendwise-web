@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/lib/auth'
 import { useRouter } from 'next/navigation'
+import CategoryList from '@/components/CategoryList'
 
 export default function SettingsPage() {
   const { user, logout } = useAuth()
@@ -26,6 +27,10 @@ export default function SettingsPage() {
             <p className="font-medium">{user?.name}</p>
             <p className="text-sm text-muted-foreground">{user?.email}</p>
           </div>
+        </div>
+
+        <div className="rounded-xl border border-border bg-card p-4">
+          <CategoryList />
         </div>
 
         <div className="rounded-xl border border-border bg-card p-4">
