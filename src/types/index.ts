@@ -15,6 +15,7 @@ export interface Category {
   type: 'income' | 'expense'
   icon?: string
   color?: string
+  isDefault?: boolean
 }
 
 export interface SavingGoal {
@@ -28,15 +29,30 @@ export interface SavingGoal {
   updatedAt: string
 }
 
-export interface User {
+export interface GoalContribution {
+  id: string
+  goalId: string
+  amount: number
+  note?: string
+  date: string
+  createdAt: string
+}
+
+export interface UserProfile {
   id: string
   name: string
   email: string
-  password: string
   currency: string
-  theme: 'light' | 'dark'
-  startingBalance?: number
+  theme: 'light' | 'dark' | 'system'
+  startingBalance: number
   createdAt: string
+}
+
+export interface StoredUser {
+  id: string
+  name: string
+  email: string
+  passwordHash: string
 }
 
 export type Theme = 'light' | 'dark' | 'system'

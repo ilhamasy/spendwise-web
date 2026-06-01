@@ -1,4 +1,10 @@
 import '@testing-library/jest-dom/vitest'
+import 'fake-indexeddb/auto'
+
+// vitest globals declaration for TypeScript
+declare global {
+  const vi: typeof import('vitest')['vi']
+}
 
 // Mock localStorage for jsdom
 const store: Record<string, string> = {}
