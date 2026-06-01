@@ -8,7 +8,7 @@ import { formatCurrencyInput, parseCurrencyInput } from '@/lib/currency'
 import CategoryModal from './CategoryModal'
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const MONTH_DATES = Array.from({ length: 28 }, (_, i) => i + 1)
+const MONTH_DATES = Array.from({ length: 31 }, (_, i) => i + 1)
 
 interface Props {
   open: boolean
@@ -55,13 +55,26 @@ export default function AddTransactionModal({ open, onClose, onSuccess }: Props)
       const next = new Date(now)
       next.setDate(next.getDate() + daysUntil)
       return next.toLocaleDateString('en-GB')
-    } else {
-      const next = new Date(now.getFullYear(), now.getMonth(), selectedDate)
-      if (next <= now) {
-        next.setMonth(next.getMonth() + 1)
-      }
-      return next.toLocaleDateString('en-GB')
     }
+
+    // Monthly: try this month first
+    let next = new Date(now.getFullYear(), now.getMonth(), selectedDate)
+
+    // If the day doesn't exist in this month (e.g. 31 in Feb), JS rolls to next month.
+    // Detect overflow: if the resulting month doesn't match, round to 1st of next-next month.
+    if (next.getMonth() !== now.getMonth()) {
+      next = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+    }
+
+    // If the computed date is already past, move to next month
+    if (next <= now) {
+      next = new Date(now.getFullYear(), now.getMonth() + 1, selectedDate)
+      if (next.getMonth() !== (now.getMonth() + 1) % 12) {
+        next = new Date(now.getFullYear(), now.getMonth() + 2, 1)
+      }
+    }
+
+    return next.toLocaleDateString('en-GB')
   }
 
   function resetForm() {

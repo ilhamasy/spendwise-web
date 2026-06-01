@@ -23,6 +23,6 @@ describe('BottomNav', () => {
     render(<BottomNav />)
     const links = screen.getAllByText('Dashboard')
     const dashboardLink = links[0].closest('a')
-    expect(dashboardLink?.className).toContain('indigo')
+    expect(dashboardLink?.className).toContain('text-primary')
   })
 })
