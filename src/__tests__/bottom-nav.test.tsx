@@ -1,11 +1,14 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, afterEach } from 'vitest'
+import { render, screen, cleanup } from '@testing-library/react'
 import BottomNav from '@/components/BottomNav'
 
-// Mock next/navigation
 vi.mock('next/navigation', () => ({
   usePathname: () => '/dashboard',
 }))
+
+afterEach(() => {
+  cleanup()
+})
 
 describe('BottomNav', () => {
   it('renders all 4 navigation items', () => {
@@ -18,7 +21,8 @@ describe('BottomNav', () => {
 
   it('highlights active route', () => {
     render(<BottomNav />)
-    const dashboardLink = screen.getByText('Dashboard').closest('a')
+    const links = screen.getAllByText('Dashboard')
+    const dashboardLink = links[0].closest('a')
     expect(dashboardLink?.className).toContain('indigo')
   })
 })

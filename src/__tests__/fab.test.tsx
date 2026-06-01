@@ -1,11 +1,15 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, afterEach } from 'vitest'
+import { render, screen, cleanup } from '@testing-library/react'
 import FAB from '@/components/FAB'
 
 const mockPathname = vi.fn(() => '/dashboard')
 vi.mock('next/navigation', () => ({
   usePathname: () => mockPathname(),
 }))
+
+afterEach(() => {
+  cleanup()
+})
 
 describe('FAB', () => {
   it('renders on dashboard page', () => {
