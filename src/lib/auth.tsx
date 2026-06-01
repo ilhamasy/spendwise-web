@@ -106,8 +106,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       passwordHash,
     }
     saveUsers([...users, newUser])
-    setSession(newUser.id)
-    setUser({ id: newUser.id, name: newUser.name, email: newUser.email })
   }, [])
 
   const logout = useCallback(() => {

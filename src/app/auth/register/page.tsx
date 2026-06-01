@@ -39,7 +39,7 @@ export default function RegisterPage() {
     setIsSubmitting(true)
     try {
       await register(name.trim(), email.trim(), password)
-      router.push('/dashboard')
+      router.push('/auth/login')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed')
     } finally {

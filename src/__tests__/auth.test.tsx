@@ -1,28 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { render, screen, waitFor, cleanup } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { render, cleanup } from '@testing-library/react'
 import { AuthProvider } from '@/lib/auth'
-import type { ReactNode } from 'react'
-
-function TestConsumer() {
-  return (
-    <div>
-      <span data-testid="user">no-user</span>
-      <button
-        data-testid="register-btn"
-        onClick={async () => {
-          const { useAuth } = await import('@/lib/auth')
-          // Need to access provider context - use a workaround
-          const btn = document.querySelector('[data-testid="register-btn"]')
-          if (btn) btn.textContent = 'registered'
-        }}
-      >
-        Register
-      </button>
-      <button data-testid="logout-btn">Logout</button>
-    </div>
-  )
-}
 
 // Helper to test auth operations directly
 async function registerUser(name: string, email: string, password: string) {
@@ -37,7 +15,6 @@ async function registerUser(name: string, email: string, password: string) {
   }
   users.push(newUser)
   localStorage.setItem('spendwise-users', JSON.stringify(users))
-  localStorage.setItem('spendwise-session', newUser.id)
   return newUser
 }
 
@@ -71,15 +48,6 @@ describe('Auth - Local Storage', () => {
     expect(users[0].passwordHash).toMatch(/^\$2[ab]\$/)
   })
 
-  it('prevents duplicate email registration', async () => {
-    await registerUser('User 1', 'dup@test.com', 'pass123')
-    await registerUser('User 2', 'dup@test.com', 'pass456')
-
-    // Should have 2 users stored (we didn't add duplicate check in helper)
-    const users = getStoredUsers()
-    expect(users.length).toBeGreaterThanOrEqual(1)
-  })
-
   it('password verification works correctly', async () => {
     const bcrypt = await import('bcryptjs')
     const hash = await bcrypt.hash('mypassword', 12)
@@ -100,19 +68,17 @@ describe('Auth - Local Storage', () => {
     expect(users[0].id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-/)
   })
 
-  it('session is stored in localStorage', async () => {
-    await registerUser('Test', 'session@test.com', 'pass')
-
-    const sessionId = localStorage.getItem('spendwise-session')
-    expect(sessionId).toBeTruthy()
-    expect(typeof sessionId).toBe('string')
-  })
-
-  it('logout clears session', () => {
-    localStorage.setItem('spendwise-session', 'some-id')
+  it('session token management', () => {
+    localStorage.setItem('spendwise-session', 'some-user-id')
+    expect(localStorage.getItem('spendwise-session')).toBe('some-user-id')
 
     localStorage.removeItem('spendwise-session')
+    expect(localStorage.getItem('spendwise-session')).toBeNull()
+  })
 
+  it('registration does NOT auto-login (user must login after registering)', async () => {
+    await registerUser('New User', 'new@test.com', 'password123')
+    // Session should not be set by registration
     expect(localStorage.getItem('spendwise-session')).toBeNull()
   })
 })
@@ -125,22 +91,5 @@ describe('AuthProvider component', () => {
       </AuthProvider>,
     )
     expect(container.textContent).toContain('Test')
-  })
-
-  it('loads user from stored session', async () => {
-    await registerUser('Jane', 'jane@test.com', 'password')
-
-    function ShowUser() {
-      const { user } = require('@/lib/auth').useAuth
-      // Can't easily hook into context from outside, skip component test
-      return <div>ok</div>
-    }
-
-    const { container } = render(
-      <AuthProvider>
-        <div>Child</div>
-      </AuthProvider>,
-    )
-    expect(container).toBeTruthy()
   })
 })
