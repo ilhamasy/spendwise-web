@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Wallet, ArrowDownToLine, ArrowUpFromLine, PiggyBank } from 'lucide-react'
+import walletIcon from '@/assets/icons8-wallet-94.png'
+import salaryIcon from '@/assets/icons8-salary-94.png'
+import cartIcon from '@/assets/icons8-shopping-cart-94.png'
+import bankIcon from '@/assets/icons8-bank-94.png'
 import KpiCard from '@/components/KpiCard'
 import MoneyFlowCard from '@/components/MoneyFlowCard'
 import BudgetCard from '@/components/BudgetCard'
@@ -91,10 +94,10 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <KpiCard title="Total Balance" value={formatCurrency(balance)} change={balanceChange.change} isPositive={balanceChange.isPositive} icon={Wallet} />
-        <KpiCard title="Total Income" value={formatCurrency(income)} change={incomeChange.change} isPositive={incomeChange.isPositive} icon={ArrowDownToLine} />
-        <KpiCard title="Total Expense" value={formatCurrency(expense)} change={expenseChange.change} isPositive={!expenseChange.isPositive} icon={ArrowUpFromLine} />
-        <KpiCard title="Total Savings" value={formatCurrency(savings)} change={savingsChange.change} isPositive={savingsChange.isPositive} icon={PiggyBank} />
+        <KpiCard title="Total Balance" value={formatCurrency(balance)} change={balanceChange.change} isPositive={balanceChange.isPositive} icon={walletIcon} />
+        <KpiCard title="Total Income" value={formatCurrency(income)} change={incomeChange.change} isPositive={incomeChange.isPositive} icon={salaryIcon} />
+        <KpiCard title="Total Expense" value={formatCurrency(expense)} change={expenseChange.change} isPositive={!expenseChange.isPositive} icon={cartIcon} />
+        <KpiCard title="Total Savings" value={formatCurrency(savings)} change={savingsChange.change} isPositive={savingsChange.isPositive} icon={bankIcon} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

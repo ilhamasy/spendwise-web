@@ -2,22 +2,22 @@
 
 import { cn } from '@/lib/utils'
 import { TrendingUp, TrendingDown } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import type { StaticImageData } from 'next/image'
 
 interface KpiCardProps {
   title: string
   value: string
   change: string
   isPositive: boolean
-  icon: LucideIcon
+  icon: StaticImageData
 }
 
-export default function KpiCard({ title, value, change, isPositive, icon: Icon }: KpiCardProps) {
+export default function KpiCard({ title, value, change, isPositive, icon }: KpiCardProps) {
   return (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-light">
-          <Icon className="h-5 w-5 text-primary" strokeWidth={2} />
+          <img src={icon.src} alt={title} className="h-10 w-10" />
         </div>
         <span
           className={cn(
