@@ -123,7 +123,7 @@ export default function DateFilter({
           </button>
         ))}
 
-        <div ref={pickerRef} className="relative">
+        <div ref={pickerRef} className="relative" onMouseDown={(e) => e.stopPropagation()}>
           <button
             onClick={() => setPickerOpen(!pickerOpen)}
             className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-all"
@@ -132,7 +132,7 @@ export default function DateFilter({
           </button>
 
           {pickerOpen && (
-            <div className="absolute left-0 top-full z-50 mt-2">
+            <div className="absolute left-0 top-full z-50 mt-2" onMouseDown={(e) => e.stopPropagation()}>
               <DateRangePicker
                 startDate={startDate}
                 endDate={endDate}
