@@ -56,7 +56,7 @@ export default function BottomNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/80 backdrop-blur-xl safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-lg border-t border-white/20 bg-white/70 shadow-[0_-8px_32px_rgba(0,0,0,0.06)] backdrop-blur-2xl dark:border-white/10 dark:bg-gray-950/60 dark:shadow-[0_-8px_32px_rgba(0,0,0,0.3)] safe-area-bottom rounded-t-3xl">
       <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-1">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
@@ -65,7 +65,7 @@ export default function BottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex flex-col items-center gap-0.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
+                'flex flex-col items-center gap-0.5 rounded-2xl px-3 py-1.5 text-xs font-semibold transition-all duration-200',
                 isActive
                   ? 'text-primary dark:text-primary'
                   : 'text-muted-foreground hover:text-foreground'
