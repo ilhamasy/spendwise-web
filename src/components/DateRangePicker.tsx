@@ -118,21 +118,24 @@ export default function DateRangePicker({
     <div className="w-[520px] rounded-2xl border border-border bg-card p-4 shadow-xl">
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <button onClick={() => shiftMonths(-1)} className="rounded p-0.5 hover:bg-muted"><ChevronLeft className="h-3.5 w-3.5" /></button>
-          <select value={leftMonth} onChange={(e) => setLeftMonth(Number(e.target.value))} className="rounded border-border bg-transparent px-1.5 py-0.5 text-[11px] font-medium text-foreground">
-            {MONTHS.map((m, i) => (<option key={m} value={i}>{m}</option>))}
-          </select>
-          <select value={leftYear} onChange={(e) => setLeftYear(Number(e.target.value))} className="rounded border-border bg-transparent px-1.5 py-0.5 text-[11px] font-medium text-foreground">
-            {Array.from({ length: 5 }, (_, i) => leftYear - 2 + i).map((y) => (<option key={y} value={y}>{y}</option>))}
-          </select>
-          <span className="text-muted-foreground text-xs">–</span>
-          <span className="text-[11px] font-medium text-foreground">{MONTHS[rightMonth]} {rightYear}</span>
-          <button onClick={() => shiftMonths(1)} className="rounded p-0.5 hover:bg-muted"><ChevronRight className="h-3.5 w-3.5" /></button>
-        </div>
+        <button className="rounded-lg bg-primary px-3 py-1.5 text-[11px] font-semibold text-white">
+          Select Date
+        </button>
         <p className="text-[10px] text-muted-foreground">
-          {startDate ? startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'} – {endDate ? endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
+          Selected: {startDate ? startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'} – {endDate ? endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
         </p>
+      </div>
+      <div className="flex items-center gap-2 mt-2">
+        <button onClick={() => shiftMonths(-1)} className="rounded p-0.5 hover:bg-muted"><ChevronLeft className="h-3.5 w-3.5" /></button>
+        <select value={leftMonth} onChange={(e) => setLeftMonth(Number(e.target.value))} className="rounded border-border bg-transparent px-1.5 py-0.5 text-[11px] font-medium text-foreground">
+          {MONTHS.map((m, i) => (<option key={m} value={i}>{m}</option>))}
+        </select>
+        <select value={leftYear} onChange={(e) => setLeftYear(Number(e.target.value))} className="rounded border-border bg-transparent px-1.5 py-0.5 text-[11px] font-medium text-foreground">
+          {Array.from({ length: 5 }, (_, i) => leftYear - 2 + i).map((y) => (<option key={y} value={y}>{y}</option>))}
+        </select>
+        <span className="text-muted-foreground text-xs">–</span>
+        <span className="text-[11px] font-medium text-foreground">{MONTHS[rightMonth]} {rightYear}</span>
+        <button onClick={() => shiftMonths(1)} className="rounded p-0.5 hover:bg-muted"><ChevronRight className="h-3.5 w-3.5" /></button>
       </div>
 
       {/* Dual Calendar */}
