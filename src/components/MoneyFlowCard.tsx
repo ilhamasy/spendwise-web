@@ -9,10 +9,9 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 
 interface Props {
   year: number
-  onYearChange: (year: number) => void
 }
 
-export default function MoneyFlowCard({ year, onYearChange }: Props) {
+export default function MoneyFlowCard({ year }: Props) {
   const [data, setData] = useState<{ month: string; income: number; expense: number }[]>([])
 
   useEffect(() => {
@@ -40,15 +39,7 @@ export default function MoneyFlowCard({ year, onYearChange }: Props) {
     <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <h3 className="text-base font-semibold text-foreground">Money Flow</h3>
-        <select
-          value={year}
-          onChange={(e) => onYearChange(Number(e.target.value))}
-          className="rounded-lg border border-border bg-transparent px-3 py-1.5 text-xs text-muted-foreground"
-        >
-          {[2024, 2025, 2026, 2027].map((y) => (
-            <option key={y} value={y}>{y}</option>
-          ))}
-        </select>
+        <span className="text-xs text-muted-foreground">{year}</span>
       </div>
 
       <div className="mt-4 flex items-center gap-6">
