@@ -28,6 +28,7 @@ export default function FAB() {
       <AddTransactionModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
+        onSuccess={() => window.dispatchEvent(new Event('transaction-updated'))}
       />
     </>
   )

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import walletIcon from '@/assets/icons8-wallet-94.png'
 import salaryIcon from '@/assets/icons8-salary-94.png'
 import cartIcon from '@/assets/icons8-shopping-cart-94.png'
@@ -44,33 +44,45 @@ export default function DashboardPage() {
     })
   }, [])
 
-  useEffect(() => {
+  const fetchData = useCallback(async () => {
     const { start, end } = getFilterDateRange(period, customStart, customEnd)
 
-    Promise.all([
+    const [totalIncome, totalExpense, currentSavings] = await Promise.all([
       getTotalIncome(start, end),
       getTotalExpense(start, end),
       getTotalSavings(),
-    ]).then(async ([totalIncome, totalExpense, currentSavings]) => {
-      const rangeDays = (new Date(end).getTime() - new Date(start).getTime()) / 86400000
-      const prevStart = new Date(new Date(start).getTime() - (rangeDays + 1) * 86400000).toISOString().split('T')[0]
-      const prevEnd = new Date(new Date(start).getTime() - 86400000).toISOString().split('T')[0]
+    ])
 
-      const [prevIncome, prevExpense] = await Promise.all([
-        getTotalIncome(prevStart, prevEnd),
-        getTotalExpense(prevStart, prevEnd),
-      ])
+    const rangeDays = (new Date(end).getTime() - new Date(start).getTime()) / 86400000
+    const prevStart = new Date(new Date(start).getTime() - (rangeDays + 1) * 86400000).toISOString().split('T')[0]
+    const prevEnd = new Date(new Date(start).getTime() - 86400000).toISOString().split('T')[0]
 
-      setBalance(totalIncome - totalExpense + currentSavings)
-      setIncome(totalIncome)
-      setExpense(totalExpense)
-      setSavings(currentSavings)
-      setIncomeChange(computeChange(totalIncome, prevIncome))
-      setExpenseChange(computeChange(totalExpense, prevExpense))
-      setSavingsChange(computeChange(currentSavings, currentSavings > 0 ? currentSavings * 0.9 : 0))
-      setChartYear(getChartYear(period, customStart, customEnd))
-    })
+    const [prevIncome, prevExpense] = await Promise.all([
+      getTotalIncome(prevStart, prevEnd),
+      getTotalExpense(prevStart, prevEnd),
+    ])
+
+    setBalance(totalIncome - totalExpense + currentSavings)
+    setIncome(totalIncome)
+    setExpense(totalExpense)
+    setSavings(currentSavings)
+    setIncomeChange(computeChange(totalIncome, prevIncome))
+    setExpenseChange(computeChange(totalExpense, prevExpense))
+    setSavingsChange(computeChange(currentSavings, currentSavings > 0 ? currentSavings * 0.9 : 0))
+    setChartYear(getChartYear(period, customStart, customEnd))
   }, [period, customStart, customEnd])
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => {
+    const handler = () => fetchData()
+    window.addEventListener('transaction-updated', handler)
+    return () => window.removeEventListener('transaction-updated', handler)
+  }, [fetchData])
 
   const balanceChange = computeChange(balance, balance)
 

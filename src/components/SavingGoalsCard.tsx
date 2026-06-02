@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { getAllGoals } from '@/lib/goal-service'
 import { formatCurrency } from '@/lib/currency'
@@ -10,12 +10,20 @@ export default function SavingGoalsCard() {
   const [goals, setGoals] = useState<SavingGoal[]>([])
   const [loaded, setLoaded] = useState(false)
 
-  useEffect(() => {
-    (async () => {
-      setGoals((await getAllGoals('active')).slice(0, 3))
-      setLoaded(true)
-    })()
+  const loadData = useCallback(async () => {
+    setGoals((await getAllGoals('active')).slice(0, 3))
+    setLoaded(true)
   }, [])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  useEffect(() => {
+    const handler = () => loadData()
+    window.addEventListener('transaction-updated', handler)
+    return () => window.removeEventListener('transaction-updated', handler)
+  }, [loadData])
 
   if (!loaded) {
     return (

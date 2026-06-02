@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { getRecentTransactions } from '@/lib/transaction-service'
 import { getAllCategories } from '@/lib/category-service'
@@ -23,14 +23,22 @@ export default function RecentTransactionsTable() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loaded, setLoaded] = useState(false)
 
-  useEffect(() => {
-    (async () => {
-      const [txs, cats] = await Promise.all([getRecentTransactions(3), getAllCategories()])
-      setTransactions(txs)
-      setCategories(cats)
-      setLoaded(true)
-    })()
+  const loadData = useCallback(async () => {
+    const [txs, cats] = await Promise.all([getRecentTransactions(3), getAllCategories()])
+    setTransactions(txs)
+    setCategories(cats)
+    setLoaded(true)
   }, [])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  useEffect(() => {
+    const handler = () => loadData()
+    window.addEventListener('transaction-updated', handler)
+    return () => window.removeEventListener('transaction-updated', handler)
+  }, [loadData])
 
   const getCat = (id: string) => categories.find((c) => c.id === id)
 
