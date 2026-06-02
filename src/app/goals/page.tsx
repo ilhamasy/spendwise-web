@@ -245,7 +245,7 @@ export default function GoalsPage() {
 
       {/* Create/Edit Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/50" onClick={() => setModalOpen(false)} />
           <div className="relative z-10 w-full max-w-sm rounded-t-2xl sm:rounded-2xl bg-card p-6 shadow-xl">
             <h3 className="text-lg font-semibold text-foreground">{editingGoal ? 'Edit Goal' : 'New Goal'}</h3>
@@ -296,7 +296,7 @@ export default function GoalsPage() {
 
       {/* Contribution Modal */}
       {contribGoal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/50" onClick={() => setContribGoal(null)} />
           <div className="relative z-10 w-full max-w-sm rounded-t-2xl sm:rounded-2xl bg-card p-6 shadow-xl">
             <h3 className="text-lg font-semibold text-foreground">Add to {contribGoal.name}</h3>
