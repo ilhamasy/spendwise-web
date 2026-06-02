@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import AddTransactionModal from './AddTransactionModal'
+import receiptIcon from '@/assets/icons8-receipt-94.png'
 
 const FAB_ROUTES = ['/dashboard', '/transactions']
 
@@ -19,10 +20,7 @@ export default function FAB() {
         aria-label="Add transaction"
         onClick={() => setModalOpen(true)}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 5v14" />
-          <path d="M5 12h14" />
-        </svg>
+        <img src={receiptIcon.src} alt="Add" className="h-7 w-7" />
       </button>
 
       <AddTransactionModal
