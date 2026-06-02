@@ -8,27 +8,32 @@ import { getAllCategories } from '@/lib/category-service'
 import { deleteTransaction } from '@/lib/transaction-service'
 import { formatCurrency } from '@/lib/currency'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import DateFilter, { getFilterDateRange } from '@/components/DateFilter'
+import type { FilterPeriod } from '@/components/DateFilter'
 
 const ITEMS_PER_PAGE = 20
-
-type FilterType = 'all' | 'monthly' | 'yearly' | 'custom'
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loaded, setLoaded] = useState(false)
 
-  const [filterType, setFilterType] = useState<FilterType>('all')
-  const [filterMonth, setFilterMonth] = useState(new Date().getMonth())
-  const [filterYear, setFilterYear] = useState(new Date().getFullYear())
+  const [filterType, setFilterType] = useState<FilterPeriod>('year')
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
+  const [minDate, setMinDate] = useState('2024-01-01')
 
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date')
   const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc')
 
   const [page, setPage] = useState(1)
   const [deleteTarget, setDeleteTarget] = useState<Transaction | null>(null)
+
+  useEffect(() => {
+    db.transactions.orderBy('occurredAt').first().then((first) => {
+      if (first) setMinDate(first.occurredAt)
+    })
+  }, [])
 
   const loadData = useCallback(async () => {
     const [allTx, cats] = await Promise.all([
@@ -40,13 +45,10 @@ export default function TransactionsPage() {
 
     let filtered = allTx
 
-    if (filterType === 'monthly') {
-      const m = String(filterMonth + 1).padStart(2, '0')
-      const prefix = `${filterYear}-${m}`
-      filtered = allTx.filter((t) => t.occurredAt.startsWith(prefix))
-    } else if (filterType === 'yearly') {
-      filtered = allTx.filter((t) => t.occurredAt.startsWith(String(filterYear)))
-    } else if (filterType === 'custom' && customStart && customEnd) {
+    if (filterType !== 'custom') {
+      const { start, end } = getFilterDateRange(filterType, customStart, customEnd)
+      filtered = allTx.filter((t) => t.occurredAt >= start && t.occurredAt <= end)
+    } else if (customStart && customEnd) {
       filtered = allTx.filter((t) => t.occurredAt >= customStart && t.occurredAt <= customEnd)
     }
 
@@ -61,7 +63,7 @@ export default function TransactionsPage() {
 
     setTransactions(filtered)
     setPage(1)
-  }, [filterType, filterMonth, filterYear, customStart, customEnd, sortBy, sortDir])
+  }, [filterType, customStart, customEnd, sortBy, sortDir])
 
    
   useEffect(() => {
@@ -86,8 +88,6 @@ export default function TransactionsPage() {
     window.dispatchEvent(new Event('transaction-updated'))
   }
 
-  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div>
@@ -99,49 +99,14 @@ export default function TransactionsPage() {
 
       {/* Filters + Sort */}
       <div className="flex flex-wrap items-center gap-2">
-        {(['all', 'monthly', 'yearly', 'custom'] as FilterType[]).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilterType(f)}
-            className={`rounded-full px-4 py-1.5 text-xs font-medium transition-all capitalize ${
-              filterType === f
-                ? 'bg-primary text-white'
-                : 'border border-border bg-card text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {f}
-          </button>
-        ))}
-
-        {filterType === 'monthly' && (
-          <div className="flex gap-1">
-            <select value={filterMonth} onChange={(e) => setFilterMonth(Number(e.target.value))}
-              className="rounded-lg border border-border bg-card px-2 py-1.5 text-xs text-foreground">
-              {MONTHS.map((m, i) => (<option key={m} value={i}>{m}</option>))}
-            </select>
-            <select value={filterYear} onChange={(e) => setFilterYear(Number(e.target.value))}
-              className="rounded-lg border border-border bg-card px-2 py-1.5 text-xs text-foreground">
-              {[2024, 2025, 2026, 2027].map((y) => (<option key={y} value={y}>{y}</option>))}
-            </select>
-          </div>
-        )}
-
-        {filterType === 'yearly' && (
-          <select value={filterYear} onChange={(e) => setFilterYear(Number(e.target.value))}
-            className="rounded-lg border border-border bg-card px-2 py-1.5 text-xs text-foreground">
-            {[2024, 2025, 2026, 2027].map((y) => (<option key={y} value={y}>{y}</option>))}
-          </select>
-        )}
-
-        {filterType === 'custom' && (
-          <div className="flex items-center gap-2">
-            <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)}
-              className="rounded-lg border border-border bg-card px-2 py-1.5 text-xs text-foreground" />
-            <span className="text-xs text-muted-foreground">to</span>
-            <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)}
-              className="rounded-lg border border-border bg-card px-2 py-1.5 text-xs text-foreground" />
-          </div>
-        )}
+        <DateFilter
+          period={filterType}
+          customStart={customStart}
+          customEnd={customEnd}
+          minDate={minDate}
+          onPeriodChange={setFilterType}
+          onCustomChange={(s, e) => { setCustomStart(s); setCustomEnd(e) }}
+        />
 
         <div className="ml-auto flex items-center gap-2">
           <select value={`${sortBy}-${sortDir}`} onChange={(e) => {
@@ -164,8 +129,8 @@ export default function TransactionsPage() {
       ) : paginated.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
           <p className="text-sm">No transactions found</p>
-          {filterType !== 'all' && (
-            <button onClick={() => setFilterType('all')} className="mt-2 text-xs text-primary hover:underline">
+          {filterType !== 'year' && (
+            <button onClick={() => setFilterType('year')} className="mt-2 text-xs text-primary hover:underline">
               Clear filters
             </button>
           )}
