@@ -32,8 +32,10 @@ function isInRange(day: Date, start: Date | null, end: Date | null) {
 }
 
 function isDisabled(day: Date, minDate: string, maxDate: string) {
-  const d = new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime()
-  return d < new Date(minDate).getTime() || d > new Date(maxDate).getTime()
+  const d = Date.UTC(day.getFullYear(), day.getMonth(), day.getDate())
+  const min = new Date(minDate + 'T00:00:00').getTime()
+  const max = new Date(maxDate + 'T00:00:00').getTime()
+  return d < min || d > max
 }
 
 export default function DateRangePicker({
