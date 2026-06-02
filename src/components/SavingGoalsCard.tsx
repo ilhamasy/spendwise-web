@@ -57,7 +57,7 @@ export default function SavingGoalsCard() {
                   <p className="text-sm font-medium text-foreground">{goal.name}</p>
                   <span className="text-xs font-semibold text-foreground">{progress}%</span>
                 </div>
-                <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-red-100 dark:bg-red-950/30">
                   <div className="h-full rounded-full bg-gradient-to-r from-green-400 to-green-500 transition-all" style={{ width: `${progress}%` }} />
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">

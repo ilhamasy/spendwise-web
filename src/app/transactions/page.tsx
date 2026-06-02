@@ -157,7 +157,7 @@ export default function TransactionsPage() {
                     <p className="text-xs text-muted-foreground">{new Date(tx.occurredAt).toLocaleDateString('en-GB')}</p>
                   </div>
                   <p className={`shrink-0 text-sm font-semibold ${isIncome ? 'text-income' : 'text-expense'}`}>
-                    {isIncome ? '+' : '-'}{formatCurrency(tx.amount).replace('Rp', '')}
+                    {isIncome ? '+' : '-'}{formatCurrency(tx.amount)}
                   </p>
                   <div className="flex shrink-0 gap-0.5">
                     <button

@@ -93,7 +93,7 @@ export default function RecentTransactionsTable() {
                       </div>
                     </td>
                     <td className={`py-3 text-right font-semibold ${isIncome ? 'text-income' : 'text-expense'}`}>
-                      {isIncome ? '+' : '-'}{formatCurrency(tx.amount).replace('Rp', '')}
+                      {isIncome ? '+' : '-'}{formatCurrency(tx.amount)}
                     </td>
                   </tr>
                 )
