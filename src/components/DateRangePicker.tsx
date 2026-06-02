@@ -33,8 +33,8 @@ function isInRange(day: Date, start: Date | null, end: Date | null) {
 
 function isDisabled(day: Date, minDate: string, maxDate: string) {
   const d = Date.UTC(day.getFullYear(), day.getMonth(), day.getDate())
-  const min = new Date(minDate + 'T00:00:00').getTime()
-  const max = new Date(maxDate + 'T00:00:00').getTime()
+  const min = Date.UTC(Number(minDate.slice(0, 4)), Number(minDate.slice(5, 7)) - 1, Number(minDate.slice(8, 10)))
+  const max = Date.UTC(Number(maxDate.slice(0, 4)), Number(maxDate.slice(5, 7)) - 1, Number(maxDate.slice(8, 10)))
   return d < min || d > max
 }
 
