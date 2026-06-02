@@ -73,7 +73,7 @@ export default function BudgetCard({ year }: Props) {
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie data={data} cx="50%" cy="50%" innerRadius={64} outerRadius={96} dataKey="value" strokeWidth={0}>
-                {data.map((e) => (<Cell key={e.name} fill={e.color} />))}
+                {data.map((e, i) => (<Cell key={`cell-${i}`} fill={e.color} />))}
               </Pie>
             </PieChart>
           </ResponsiveContainer>
@@ -84,10 +84,10 @@ export default function BudgetCard({ year }: Props) {
         </div>
       </div>
       <div className="mt-4 space-y-2.5">
-        {data.map((item) => {
+        {data.map((item, i) => {
           const pct = total > 0 ? Math.round((item.value / total) * 100) : 0
           return (
-            <div key={item.name} className="flex items-center justify-between">
+            <div key={i} className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
                 <span className="text-xs text-muted-foreground">{item.name}</span>
