@@ -9,6 +9,7 @@ import {
 } from '@/lib/goal-service'
 import { formatCurrency, formatCurrencyInput, parseCurrencyInput } from '@/lib/currency'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import DatePicker from '@/components/DatePicker'
 
 export default function GoalsPage() {
   const [goals, setGoals] = useState<SavingGoal[]>([])
@@ -21,6 +22,7 @@ export default function GoalsPage() {
   const [goalName, setGoalName] = useState('')
   const [goalTarget, setGoalTarget] = useState('')
   const [goalDate, setGoalDate] = useState('')
+  const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [goalError, setGoalError] = useState('')
 
   // Contribution
@@ -251,8 +253,16 @@ export default function GoalsPage() {
               <div>
                 <label className="block text-sm font-medium text-foreground">Target Date (optional)</label>
                 <div className="relative mt-1">
-                  <input type="date" value={goalDate} onChange={(e) => setGoalDate(e.target.value)}
-                    className="block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+                  <button type="button" onClick={() => setDatePickerOpen(!datePickerOpen)}
+                    className="flex w-full items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-foreground hover:border-primary transition-colors">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    {goalDate ? new Date(goalDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : <span className="text-muted-foreground">Select date</span>}
+                  </button>
+                  {datePickerOpen && (
+                    <div className="absolute left-0 top-full z-50 mt-1" onMouseDown={(e) => e.stopPropagation()}>
+                      <DatePicker value={goalDate} onChange={(d) => { setGoalDate(d); setDatePickerOpen(false) }} />
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex justify-end gap-3 pt-2">
