@@ -276,7 +276,7 @@ export default function GoalsPage() {
                     {goalDate ? new Date(goalDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : <span className="text-muted-foreground">Select date</span>}
                   </button>
                   {datePickerOpen && (
-                    <div className="absolute right-0 top-full z-50 mt-1" onMouseDown={(e) => e.stopPropagation()}>
+                    <div className="absolute bottom-full right-0 z-50 mb-1" onMouseDown={(e) => e.stopPropagation()}>
                       <DatePicker value={goalDate} onChange={(d) => { setGoalDate(d); setDatePickerOpen(false) }} />
                     </div>
                   )}
