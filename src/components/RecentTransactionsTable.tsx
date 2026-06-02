@@ -77,7 +77,7 @@ export default function RecentTransactionsTable() {
                     <td className="py-3 text-foreground max-w-[120px] truncate">{tx.note || '-'}</td>
                     <td className="py-3">
                       <div className="flex items-center gap-1.5">
-                        {cat?.color && <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: cat.color }} />}
+                        {cat?.icon && <span className="text-sm">{cat.icon}</span>}
                         <span className="text-muted-foreground">{cat?.name || 'Unknown'}</span>
                       </div>
                     </td>

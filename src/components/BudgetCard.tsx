@@ -5,6 +5,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import { db } from '@/lib/db'
 import { getAllCategories } from '@/lib/category-service'
 import { formatCurrency } from '@/lib/currency'
+import { OTHER_COLOR } from '@/lib/constants'
 
 const TOP_N = 5
 
@@ -38,7 +39,7 @@ export default function BudgetCard({ year }: Props) {
       const sorted = [...grouped.values()].sort((a, b) => b.total - a.total)
       const top = sorted.slice(0, TOP_N)
       const otherTotal = sorted.slice(TOP_N).reduce((s, v) => s + v.total, 0)
-      if (otherTotal > 0) top.push({ name: 'Other', total: otherTotal, color: '#9ca3af' })
+      if (otherTotal > 0) top.push({ name: 'Other', total: otherTotal, color: OTHER_COLOR })
 
       setData(top.map((v) => ({ name: v.name, value: v.total, color: v.color })))
       setTotal(top.reduce((s, v) => s + v.total, 0))

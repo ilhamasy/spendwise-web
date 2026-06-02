@@ -2,12 +2,7 @@
 
 import { useState } from 'react'
 import type { Category } from '@/types'
-
-const COLOR_OPTIONS = [
-  '#ef4444', '#f97316', '#f59e0b', '#eab308', '#22c55e',
-  '#14b8a6', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7',
-  '#ec4899', '#64748b', '#78716c',
-]
+import { CATEGORY_EMOJIS, DEFAULT_CATEGORY_COLORS } from '@/lib/constants'
 
 interface CategoryModalProps {
   open: boolean
@@ -19,7 +14,7 @@ interface CategoryModalProps {
 export default function CategoryModal({ open, category, onSave, onClose }: CategoryModalProps) {
   const [name, setName] = useState(category?.name || '')
   const [type, setType] = useState<'income' | 'expense'>(category?.type || 'expense')
-  const [color, setColor] = useState(category?.color || '#6366f1')
+  const [emoji, setEmoji] = useState(category?.icon || '💰')
   const [error, setError] = useState('')
 
   const isEditing = !!category
@@ -37,7 +32,10 @@ export default function CategoryModal({ open, category, onSave, onClose }: Categ
       return
     }
 
-    onSave({ name: name.trim(), type, icon: 'tag', color })
+    const key = name.trim().toLowerCase().split(' ')[0]
+    const color = DEFAULT_CATEGORY_COLORS[key] || '#6366f1'
+
+    onSave({ name: name.trim(), type, icon: emoji, color })
   }
 
   if (!open) return null
@@ -63,7 +61,7 @@ export default function CategoryModal({ open, category, onSave, onClose }: Categ
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               placeholder="Category name"
               maxLength={50}
               autoFocus
@@ -99,19 +97,21 @@ export default function CategoryModal({ open, category, onSave, onClose }: Categ
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground">Color</label>
-            <div className="mt-1 flex flex-wrap gap-2">
-              {COLOR_OPTIONS.map((c) => (
+            <label className="block text-sm font-medium text-foreground">Emoji</label>
+            <div className="mt-2 grid grid-cols-10 gap-1">
+              {CATEGORY_EMOJIS.map((e) => (
                 <button
-                  key={c}
+                  key={e}
                   type="button"
-                  onClick={() => setColor(c)}
-                  className={`h-8 w-8 rounded-full border-2 transition-all ${
-                    color === c ? 'border-foreground scale-110' : 'border-transparent'
+                  onClick={() => setEmoji(e)}
+                  className={`flex h-9 w-9 items-center justify-center rounded-lg text-lg transition-all ${
+                    emoji === e
+                      ? 'bg-primary-light ring-2 ring-primary scale-110'
+                      : 'hover:bg-muted'
                   }`}
-                  style={{ backgroundColor: c }}
-                  aria-label={`Color ${c}`}
-                />
+                >
+                  {e}
+                </button>
               ))}
             </div>
           </div>
@@ -126,7 +126,7 @@ export default function CategoryModal({ open, category, onSave, onClose }: Categ
             </button>
             <button
               type="submit"
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
             >
               {isEditing ? 'Save' : 'Add'}
             </button>

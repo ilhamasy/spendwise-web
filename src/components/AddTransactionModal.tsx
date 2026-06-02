@@ -200,10 +200,7 @@ export default function AddTransactionModal({ open, onClose, onSuccess }: Props)
                         : 'border-border text-muted-foreground hover:border-muted-foreground'
                     }`}
                   >
-                    <div
-                      className="h-3 w-3 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: cat.color || '#6366f1' }}
-                    />
+                    <span className="text-sm">{cat.icon || '📁'}</span>
                     {cat.name}
                   </button>
                 ))}
