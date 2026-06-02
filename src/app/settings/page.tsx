@@ -141,25 +141,6 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Appearance */}
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-muted-foreground">Appearance</h2>
-          <div className="mt-3 flex gap-2">
-            {([
-              { key: 'light' as const, icon: Sun, label: 'Light' },
-              { key: 'dark' as const, icon: Moon, label: 'Dark' },
-              { key: 'system' as const, icon: Monitor, label: 'System' },
-            ]).map(({ key, icon: Icon, label }) => (
-              <button key={key} onClick={() => setTheme(key)}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-medium transition-all ${
-                  theme === key ? 'border-primary bg-primary-light text-primary' : 'border-border text-muted-foreground hover:text-foreground'
-                }`}>
-                <Icon className="h-4 w-4" /> {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Password */}
         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-muted-foreground">Change Password</h2>
@@ -180,6 +161,25 @@ export default function SettingsPage() {
               className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary/90">
               Change Password
             </button>
+          </div>
+        </div>
+
+        {/* Appearance */}
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-muted-foreground">Appearance</h2>
+          <div className="mt-3 flex gap-2">
+            {([
+              { key: 'light' as const, icon: Sun, label: 'Light' },
+              { key: 'dark' as const, icon: Moon, label: 'Dark' },
+              { key: 'system' as const, icon: Monitor, label: 'System' },
+            ]).map(({ key, icon: Icon, label }) => (
+              <button key={key} onClick={() => setTheme(key)}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-medium transition-all ${
+                  theme === key ? 'border-primary bg-primary-light text-primary' : 'border-border text-muted-foreground hover:text-foreground'
+                }`}>
+                <Icon className="h-4 w-4" /> {label}
+              </button>
+            ))}
           </div>
         </div>
 
