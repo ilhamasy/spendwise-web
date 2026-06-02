@@ -11,7 +11,7 @@ import ConfirmDialog from '@/components/ConfirmDialog'
 import DateFilter, { getFilterDateRange } from '@/components/DateFilter'
 import type { FilterPeriod } from '@/components/DateFilter'
 
-const ITEMS_PER_PAGE = 20
+const ITEMS_PER_PAGE = 10
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
