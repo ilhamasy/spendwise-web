@@ -67,7 +67,7 @@ export default function BudgetCard({ year }: Props) {
 
   return (
     <div className="flex h-full flex-col rounded-2xl border border-border bg-card p-5 shadow-sm">
-      <h3 className="text-base font-semibold text-foreground">Budget</h3>
+      <h3 className="text-base font-semibold text-foreground">Moneytory</h3>
       <div className="relative mt-4 flex flex-1 items-center justify-center">
         <div className="h-48 w-48">
           <ResponsiveContainer width="100%" height="100%">
