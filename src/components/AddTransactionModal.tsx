@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import type { Category } from '@/types'
 import { getAllCategories, createCategory, seedDefaultCategories } from '@/lib/category-service'
 import { createTransaction } from '@/lib/transaction-service'
+import { db } from '@/lib/db'
 import { formatCurrencyInput, parseCurrencyInput } from '@/lib/currency'
 import CategoryModal from './CategoryModal'
 
@@ -38,7 +39,12 @@ export default function AddTransactionModal({ open, onClose, onSuccess }: Props)
   useEffect(() => {
     if (open) {
       seedDefaultCategories().then(() => {
-        getAllCategories().then(setCategories)
+        Promise.all([getAllCategories(), db.transactions.toArray()]).then(([cats, txs]) => {
+          const counts = new Map<string, number>()
+          txs.forEach((t) => counts.set(t.categoryId, (counts.get(t.categoryId) || 0) + 1))
+          cats.sort((a, b) => (counts.get(b.id) || 0) - (counts.get(a.id) || 0))
+          setCategories(cats)
+        })
       })
     }
   }, [open])
