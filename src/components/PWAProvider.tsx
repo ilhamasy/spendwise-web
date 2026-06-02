@@ -1,0 +1,83 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { WifiOff, Download } from 'lucide-react'
+
+export default function PWAProvider({ children }: { children: React.ReactNode }) {
+  const [isOffline, setIsOffline] = useState(false)
+  const [showInstall, setShowInstall] = useState(false)
+  const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null)
+  const [dismissedInstall, setDismissedInstall] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return
+
+    navigator.serviceWorker.register('/sw.js').catch(() => {})
+
+    setIsOffline(!navigator.onLine)
+    const goOffline = () => setIsOffline(true)
+    const goOnline = () => setIsOffline(false)
+    window.addEventListener('offline', goOffline)
+    window.addEventListener('online', goOnline)
+
+    const handleInstall = (e: Event) => {
+      e.preventDefault()
+      setDeferredPrompt(e)
+      if (!dismissedInstall) setShowInstall(true)
+    }
+    window.addEventListener('beforeinstallprompt', handleInstall)
+
+    return () => {
+      window.removeEventListener('offline', goOffline)
+      window.removeEventListener('online', goOnline)
+      window.removeEventListener('beforeinstallprompt', handleInstall)
+    }
+  }, [dismissedInstall])
+
+  async function handleInstall() {
+    if (!deferredPrompt) return
+    ;(deferredPrompt as any).prompt()
+    const result = await (deferredPrompt as any).userChoice
+    if (result.outcome === 'accepted') setShowInstall(false)
+    setDeferredPrompt(null)
+  }
+
+  return (
+    <>
+      {children}
+
+      {/* Offline Banner */}
+      {isOffline && (
+        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-2 bg-amber-500 px-4 py-2 text-xs font-medium text-white">
+          <WifiOff className="h-3 w-3" />
+          You are offline. Changes will sync when reconnected.
+        </div>
+      )}
+
+      {/* Install Prompt */}
+      {showInstall && (
+        <div className="fixed bottom-36 left-4 right-4 z-50 mx-auto max-w-sm rounded-2xl border border-border bg-card p-4 shadow-xl">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
+              <Download className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">Install SpendWise</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Add to home screen for quick access</p>
+              <div className="mt-3 flex gap-2">
+                <button onClick={handleInstall}
+                  className="rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-white hover:bg-primary/90">
+                  Install
+                </button>
+                <button onClick={() => { setShowInstall(false); setDismissedInstall(true) }}
+                  className="rounded-lg border border-border px-4 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground">
+                  Later
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
