@@ -57,7 +57,7 @@ export default function BudgetCard({ year }: Props) {
   if (data.length === 0) {
     return (
       <div className="flex h-full flex-col rounded-2xl border border-border bg-card p-5 shadow-sm">
-        <h3 className="text-base font-semibold text-foreground">Budget</h3>
+      <h3 className="text-base font-semibold text-foreground">Moneytory</h3>
         <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
           No expense data for {year}
         </div>
