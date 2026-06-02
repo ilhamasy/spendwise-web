@@ -45,9 +45,6 @@ export default function DateRangePicker({
   const [hoverDate, setHoverDate] = useState<Date | null>(null)
   const [picking, setPicking] = useState<'start' | 'end'>('start')
 
-  const rightMonth = month === 11 ? 0 : month + 1
-  const rightYear = month === 11 ? year + 1 : year
-
   function shiftMonths(delta: number) {
     let m = month + delta
     let y = year
@@ -115,7 +112,7 @@ export default function DateRangePicker({
   const canApply = startDate && endDate
 
   return (
-    <div className="w-[280px] sm:w-[520px] rounded-2xl border border-border bg-card p-4 shadow-xl">
+    <div className="w-[300px] rounded-2xl border border-border bg-card p-4 shadow-xl">
       {/* Navigation */}
       <div className="flex items-center gap-2">
         <button onClick={() => shiftMonths(-1)} className="rounded p-0.5 hover:bg-muted"><ChevronLeft className="h-3.5 w-3.5" /></button>
@@ -125,8 +122,6 @@ export default function DateRangePicker({
         <select value={year} onChange={(e) => setYear(Number(e.target.value))} className="rounded border-border bg-transparent px-1.5 py-0.5 text-[11px] font-medium text-foreground">
           {Array.from({ length: 5 }, (_, i) => year - 2 + i).map((y) => (<option key={y} value={y}>{y}</option>))}
         </select>
-        <span className="text-muted-foreground text-xs hidden sm:inline">–</span>
-        <span className="text-[11px] font-medium text-foreground hidden sm:inline">{MONTHS[rightMonth]} {rightYear}</span>
         <button onClick={() => shiftMonths(1)} className="rounded p-0.5 hover:bg-muted"><ChevronRight className="h-3.5 w-3.5" /></button>
         <p className="ml-auto text-[10px] text-muted-foreground">
           {startDate ? startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'} – {endDate ? endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
@@ -134,9 +129,8 @@ export default function DateRangePicker({
       </div>
 
       {/* Calendar */}
-      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="mt-3">
         {renderMonth(year, month)}
-        <div className="hidden sm:block">{renderMonth(rightYear, rightMonth)}</div>
       </div>
 
       {/* Footer */}
