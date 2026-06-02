@@ -199,7 +199,7 @@ export default function GoalsPage() {
                   <span className="shrink-0 text-sm font-bold text-foreground">{progress}%</span>
                 </div>
 
-                <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-muted">
+                <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-red-100 dark:bg-red-950/30">
                   <div className="h-full rounded-full bg-gradient-to-r from-green-400 to-green-500 transition-all"
                     style={{ width: `${progress}%` }} />
                 </div>
