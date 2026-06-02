@@ -72,12 +72,12 @@ export default function DashboardPage() {
     setChartYear(getChartYear(period, customStart, customEnd))
   }, [period, customStart, customEnd])
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+   
   useEffect(() => {
     fetchData()
   }, [fetchData])
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+   
   useEffect(() => {
     const handler = () => fetchData()
     window.addEventListener('transaction-updated', handler)
