@@ -130,7 +130,7 @@ export default function DateRangePicker({
 
       {/* Calendar */}
       <div className="mt-3">
-        {renderMonth(year, month)}
+        {renderMonth(month, year)}
       </div>
 
       {/* Footer */}
