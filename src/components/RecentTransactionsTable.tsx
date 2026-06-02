@@ -7,15 +7,18 @@ import { getAllCategories } from '@/lib/category-service'
 import { formatCurrency } from '@/lib/currency'
 import type { Transaction, Category } from '@/types'
 
-function relativeDate(dateStr: string): string {
+function relativeDateTime(dateStr: string, createdAt: string): string {
   const d = new Date(dateStr)
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const target = new Date(d.getFullYear(), d.getMonth(), d.getDate())
   const diff = (today.getTime() - target.getTime()) / 86400000
-  if (diff === 0) return 'Today'
-  if (diff === 1) return 'Yesterday'
-  return d.toLocaleDateString('en-GB')
+
+  const time = new Date(createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+
+  if (diff === 0) return `Today ${time}`
+  if (diff === 1) return `Yesterday ${time}`
+  return `${d.toLocaleDateString('en-GB')} ${time}`
 }
 
 export default function RecentTransactionsTable() {
@@ -69,7 +72,7 @@ export default function RecentTransactionsTable() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-xs text-muted-foreground">
-                <th className="pb-2 text-left font-medium">Date</th>
+                <th className="pb-2 text-left font-medium">Datetime</th>
                 <th className="pb-2 text-left font-medium">Note</th>
                 <th className="pb-2 text-left font-medium">Category</th>
                 <th className="pb-2 text-right font-medium">Amount</th>
@@ -81,7 +84,7 @@ export default function RecentTransactionsTable() {
                 const isIncome = tx.type === 'income'
                 return (
                   <tr key={tx.id} className="border-b border-border/50 last:border-0">
-                    <td className="py-3 text-muted-foreground">{relativeDate(tx.occurredAt)}</td>
+                    <td className="py-3 text-muted-foreground">{relativeDateTime(tx.occurredAt, tx.createdAt)}</td>
                     <td className="py-3 text-foreground max-w-[120px] truncate">{tx.note || '-'}</td>
                     <td className="py-3">
                       <div className="flex items-center gap-1.5">
