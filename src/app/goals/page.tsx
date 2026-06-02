@@ -7,6 +7,8 @@ import {
   getAllGoals, createGoal, updateGoal, archiveGoal, unarchiveGoal,
   deleteGoal, addContribution, getGoalContributions,
 } from '@/lib/goal-service'
+import { createTransaction } from '@/lib/transaction-service'
+import { getAllCategories, seedDefaultCategories } from '@/lib/category-service'
 import { formatCurrency, formatCurrencyInput, parseCurrencyInput } from '@/lib/currency'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import DatePicker from '@/components/DatePicker'
@@ -29,6 +31,7 @@ export default function GoalsPage() {
   const [contribGoal, setContribGoal] = useState<SavingGoal | null>(null)
   const [contribAmount, setContribAmount] = useState('')
   const [contribNote, setContribNote] = useState('')
+  const [contribDebit, setContribDebit] = useState(false)
   const [contribError, setContribError] = useState('')
 
   // Delete
@@ -96,6 +99,7 @@ export default function GoalsPage() {
     setContribGoal(goal)
     setContribAmount('')
     setContribNote('')
+    setContribDebit(false)
     setContribError('')
   }
 
@@ -107,6 +111,19 @@ export default function GoalsPage() {
     if (!contribGoal) return
 
     await addContribution(contribGoal.id, amount, contribNote || undefined)
+
+    if (contribDebit) {
+      const cats = await getAllCategories('expense')
+      const otherCat = cats.find((c) => c.name === 'Other') || cats[0]
+      await createTransaction({
+        type: 'expense',
+        amount,
+        categoryId: otherCat?.id || '',
+        occurredAt: new Date().toISOString().split('T')[0],
+        note: `Savings: ${contribGoal.name}${contribNote ? ` - ${contribNote}` : ''}`,
+      })
+    }
+
     setContribGoal(null)
     loadData()
     window.dispatchEvent(new Event('transaction-updated'))
@@ -259,7 +276,7 @@ export default function GoalsPage() {
                     {goalDate ? new Date(goalDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : <span className="text-muted-foreground">Select date</span>}
                   </button>
                   {datePickerOpen && (
-                    <div className="absolute left-0 top-full z-50 mt-1" onMouseDown={(e) => e.stopPropagation()}>
+                    <div className="absolute right-0 top-full z-50 mt-1" onMouseDown={(e) => e.stopPropagation()}>
                       <DatePicker value={goalDate} onChange={(d) => { setGoalDate(d); setDatePickerOpen(false) }} />
                     </div>
                   )}
@@ -301,6 +318,11 @@ export default function GoalsPage() {
                   className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   placeholder="e.g. January savings" maxLength={200} />
               </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={contribDebit} onChange={(e) => setContribDebit(e.target.checked)}
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary" />
+                <span className="text-sm text-foreground">Debit from balance</span>
+              </label>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setContribGoal(null)}
                   className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">Cancel</button>
