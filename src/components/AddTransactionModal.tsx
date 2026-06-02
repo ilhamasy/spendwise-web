@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react'
 import type { Category } from '@/types'
 import { getAllCategories, createCategory, seedDefaultCategories } from '@/lib/category-service'
 import { createTransaction } from '@/lib/transaction-service'
+import { db } from '@/lib/db'
 import { formatCurrencyInput, parseCurrencyInput } from '@/lib/currency'
 import CategoryModal from './CategoryModal'
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const MONTH_DATES = Array.from({ length: 28 }, (_, i) => i + 1)
+const MONTH_DATES = Array.from({ length: 31 }, (_, i) => i + 1)
 
 interface Props {
   open: boolean
@@ -38,7 +39,12 @@ export default function AddTransactionModal({ open, onClose, onSuccess }: Props)
   useEffect(() => {
     if (open) {
       seedDefaultCategories().then(() => {
-        getAllCategories().then(setCategories)
+        Promise.all([getAllCategories(), db.transactions.toArray()]).then(([cats, txs]) => {
+          const counts = new Map<string, number>()
+          txs.forEach((t) => counts.set(t.categoryId, (counts.get(t.categoryId) || 0) + 1))
+          cats.sort((a, b) => (counts.get(b.id) || 0) - (counts.get(a.id) || 0))
+          setCategories(cats)
+        })
       })
     }
   }, [open])
@@ -55,13 +61,26 @@ export default function AddTransactionModal({ open, onClose, onSuccess }: Props)
       const next = new Date(now)
       next.setDate(next.getDate() + daysUntil)
       return next.toLocaleDateString('en-GB')
-    } else {
-      const next = new Date(now.getFullYear(), now.getMonth(), selectedDate)
-      if (next <= now) {
-        next.setMonth(next.getMonth() + 1)
-      }
-      return next.toLocaleDateString('en-GB')
     }
+
+    // Monthly: try this month first
+    let next = new Date(now.getFullYear(), now.getMonth(), selectedDate)
+
+    // If the day doesn't exist in this month (e.g. 31 in Feb), JS rolls to next month.
+    // Detect overflow: if the resulting month doesn't match, round to 1st of next-next month.
+    if (next.getMonth() !== now.getMonth()) {
+      next = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+    }
+
+    // If the computed date is already past, move to next month
+    if (next <= now) {
+      next = new Date(now.getFullYear(), now.getMonth() + 1, selectedDate)
+      if (next.getMonth() !== (now.getMonth() + 1) % 12) {
+        next = new Date(now.getFullYear(), now.getMonth() + 2, 1)
+      }
+    }
+
+    return next.toLocaleDateString('en-GB')
   }
 
   function resetForm() {
@@ -181,10 +200,7 @@ export default function AddTransactionModal({ open, onClose, onSuccess }: Props)
                         : 'border-border text-muted-foreground hover:border-muted-foreground'
                     }`}
                   >
-                    <div
-                      className="h-3 w-3 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: cat.color || '#6366f1' }}
-                    />
+                    <span className="text-sm">{cat.icon || '📁'}</span>
                     {cat.name}
                   </button>
                 ))}

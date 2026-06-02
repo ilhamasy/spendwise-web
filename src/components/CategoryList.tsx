@@ -153,10 +153,7 @@ function CategoryRow({
   return (
     <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
       <div className="flex items-center gap-3">
-        <div
-          className="h-4 w-4 rounded-full"
-          style={{ backgroundColor: category.color || '#6366f1' }}
-        />
+        <span className="text-base">{category.icon || '📁'}</span>
         <span className="text-sm font-medium text-foreground">{category.name}</span>
         {category.isDefault && (
           <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">

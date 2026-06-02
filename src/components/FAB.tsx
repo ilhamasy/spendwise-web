@@ -15,7 +15,7 @@ export default function FAB() {
   return (
     <>
       <button
-        className="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg shadow-indigo-600/25 transition-all hover:bg-indigo-700 hover:shadow-indigo-600/40 active:scale-95 dark:bg-indigo-500 dark:shadow-indigo-500/25 dark:hover:bg-indigo-400"
+        className="fixed bottom-24 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary/90 active:scale-95"
         aria-label="Add transaction"
         onClick={() => setModalOpen(true)}
       >
@@ -28,6 +28,7 @@ export default function FAB() {
       <AddTransactionModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
+        onSuccess={() => window.dispatchEvent(new Event('transaction-updated'))}
       />
     </>
   )

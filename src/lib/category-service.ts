@@ -3,22 +3,22 @@ import type { Category } from '@/types'
 import { generateId } from './utils'
 
 const DEFAULT_INCOME_CATEGORIES: Omit<Category, 'id'>[] = [
-  { name: 'Salary', type: 'income', icon: 'briefcase', color: '#22c55e', isDefault: true },
-  { name: 'Freelance', type: 'income', icon: 'laptop', color: '#3b82f6', isDefault: true },
-  { name: 'Investment', type: 'income', icon: 'trending-up', color: '#8b5cf6', isDefault: true },
-  { name: 'Gift', type: 'income', icon: 'gift', color: '#f59e0b', isDefault: true },
-  { name: 'Other Income', type: 'income', icon: 'plus-circle', color: '#6b7280', isDefault: true },
+  { name: 'Salary', type: 'income', icon: '💼', color: '#22c55e', isDefault: true },
+  { name: 'Freelance', type: 'income', icon: '💻', color: '#3b82f6', isDefault: true },
+  { name: 'Investment', type: 'income', icon: '📈', color: '#8b5cf6', isDefault: true },
+  { name: 'Gift', type: 'income', icon: '🎁', color: '#f59e0b', isDefault: true },
+  { name: 'Other Income', type: 'income', icon: '💰', color: '#6b7280', isDefault: true },
 ]
 
 const DEFAULT_EXPENSE_CATEGORIES: Omit<Category, 'id'>[] = [
-  { name: 'Food', type: 'expense', icon: 'utensils', color: '#ef4444', isDefault: true },
-  { name: 'Transport', type: 'expense', icon: 'car', color: '#f97316', isDefault: true },
-  { name: 'Shopping', type: 'expense', icon: 'shopping-bag', color: '#ec4899', isDefault: true },
-  { name: 'Bills', type: 'expense', icon: 'file-text', color: '#64748b', isDefault: true },
-  { name: 'Entertainment', type: 'expense', icon: 'film', color: '#a855f7', isDefault: true },
-  { name: 'Health', type: 'expense', icon: 'heart', color: '#14b8a6', isDefault: true },
-  { name: 'Education', type: 'expense', icon: 'book-open', color: '#eab308', isDefault: true },
-  { name: 'Other', type: 'expense', icon: 'more-horizontal', color: '#78716c', isDefault: true },
+  { name: 'Food', type: 'expense', icon: '🍔', color: '#ef4444', isDefault: true },
+  { name: 'Transport', type: 'expense', icon: '🚗', color: '#f97316', isDefault: true },
+  { name: 'Shopping', type: 'expense', icon: '🛒', color: '#ec4899', isDefault: true },
+  { name: 'Bills', type: 'expense', icon: '📄', color: '#64748b', isDefault: true },
+  { name: 'Entertainment', type: 'expense', icon: '🎬', color: '#a855f7', isDefault: true },
+  { name: 'Health', type: 'expense', icon: '🏥', color: '#14b8a6', isDefault: true },
+  { name: 'Education', type: 'expense', icon: '📚', color: '#eab308', isDefault: true },
+  { name: 'Other', type: 'expense', icon: '📦', color: '#78716c', isDefault: true },
 ]
 
 export async function seedDefaultCategories(): Promise<void> {
