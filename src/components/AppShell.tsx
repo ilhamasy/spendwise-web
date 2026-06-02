@@ -21,6 +21,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-24">
           {children}
         </main>
+        <footer className="border-t border-border py-4 text-center">
+          <p className="text-xs text-muted-foreground">© 2026 Ilham Asyari. All rights reserved.</p>
+        </footer>
         <BottomNav />
         <FAB />
       </div>

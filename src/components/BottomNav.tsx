@@ -3,13 +3,16 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { LayoutDashboard, ReceiptText, Target, Settings } from 'lucide-react'
+import dashboardIcon from '@/assets/icons8-dashboard-94.png'
+import billIcon from '@/assets/icons8-bill-94.png'
+import goalIcon from '@/assets/icons8-goal-94.png'
+import settingIcon from '@/assets/icons8-setting-94.png'
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Transactions', href: '/transactions', icon: ReceiptText },
-  { label: 'Goals', href: '/goals', icon: Target },
-  { label: 'Settings', href: '/settings', icon: Settings },
+  { label: 'Dashboard', href: '/dashboard', icon: dashboardIcon },
+  { label: 'Transactions', href: '/transactions', icon: billIcon },
+  { label: 'Goals', href: '/goals', icon: goalIcon },
+  { label: 'Settings', href: '/settings', icon: settingIcon },
 ]
 
 export default function BottomNav() {
@@ -34,7 +37,7 @@ export default function BottomNav() {
                 animate={{ scale: isActive ? 1.1 : 1 }}
                 transition={{ type: 'spring', stiffness: 380, damping: 30 }}
               >
-                <item.icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
+                <img src={item.icon.src} alt={item.label} className="h-5 w-5" />
               </motion.div>
               <span className="text-[10px] font-semibold">
                 {item.label}
