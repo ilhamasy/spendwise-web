@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import { db } from '@/lib/db'
 import { getAllCategories } from '@/lib/category-service'
@@ -17,35 +17,42 @@ export default function BudgetCard({ year }: Props) {
   const [data, setData] = useState<{ name: string; value: number; color: string }[]>([])
   const [total, setTotal] = useState(0)
 
-  useEffect(() => {
-    async function load() {
-      const [allTx, categories] = await Promise.all([
-        db.transactions.toArray(),
-        getAllCategories('expense'),
-      ])
-      const yearly = allTx.filter((t) => t.type === 'expense' && t.occurredAt.startsWith(String(year)))
-      const colorMap = new Map(categories.map((c) => [c.id, c.color || '#6b7280']))
+  const loadData = useCallback(async () => {
+    const [allTx, categories] = await Promise.all([
+      db.transactions.toArray(),
+      getAllCategories('expense'),
+    ])
+    const yearly = allTx.filter((t) => t.type === 'expense' && t.occurredAt.startsWith(String(year)))
+    const colorMap = new Map(categories.map((c) => [c.id, c.color || '#6b7280']))
 
-      const grouped = new Map<string, { total: number; name: string; color: string }>()
-      yearly.forEach((tx) => {
-        const cat = categories.find((c) => c.id === tx.categoryId)
-        const key = tx.categoryId
-        if (!grouped.has(key)) {
-          grouped.set(key, { total: 0, name: cat?.name || 'Unknown', color: colorMap.get(key) || '#6b7280' })
-        }
-        grouped.get(key)!.total += tx.amount
-      })
+    const grouped = new Map<string, { total: number; name: string; color: string }>()
+    yearly.forEach((tx) => {
+      const cat = categories.find((c) => c.id === tx.categoryId)
+      const key = tx.categoryId
+      if (!grouped.has(key)) {
+        grouped.set(key, { total: 0, name: cat?.name || 'Unknown', color: colorMap.get(key) || '#6b7280' })
+      }
+      grouped.get(key)!.total += tx.amount
+    })
 
-      const sorted = [...grouped.values()].sort((a, b) => b.total - a.total)
-      const top = sorted.slice(0, TOP_N)
-      const otherTotal = sorted.slice(TOP_N).reduce((s, v) => s + v.total, 0)
-      if (otherTotal > 0) top.push({ name: 'Other', total: otherTotal, color: OTHER_COLOR })
+    const sorted = [...grouped.values()].sort((a, b) => b.total - a.total)
+    const top = sorted.slice(0, TOP_N)
+    const otherTotal = sorted.slice(TOP_N).reduce((s, v) => s + v.total, 0)
+    if (otherTotal > 0) top.push({ name: 'Other', total: otherTotal, color: OTHER_COLOR })
 
-      setData(top.map((v) => ({ name: v.name, value: v.total, color: v.color })))
-      setTotal(top.reduce((s, v) => s + v.total, 0))
-    }
-    load()
+    setData(top.map((v) => ({ name: v.name, value: v.total, color: v.color })))
+    setTotal(top.reduce((s, v) => s + v.total, 0))
   }, [year])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  useEffect(() => {
+    const handler = () => loadData()
+    window.addEventListener('transaction-updated', handler)
+    return () => window.removeEventListener('transaction-updated', handler)
+  }, [loadData])
 
   if (data.length === 0) {
     return (

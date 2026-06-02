@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts'
 import { db } from '@/lib/db'
 import { formatCurrency } from '@/lib/currency'
@@ -37,24 +37,31 @@ function CustomTooltip({ active, payload, label }: {
 export default function MoneyFlowCard({ year }: Props) {
   const [data, setData] = useState<{ month: string; income: number; expense: number }[]>([])
 
-  useEffect(() => {
-    async function load() {
-      const all = await db.transactions.toArray()
-      const yearly = all.filter((t) => t.occurredAt.startsWith(String(year)))
-      setData(
-        MONTHS.map((month, i) => {
-          const m = String(i + 1).padStart(2, '0')
-          const monthTx = yearly.filter((t) => t.occurredAt.slice(5, 7) === m)
-          return {
-            month,
-            income: monthTx.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0),
-            expense: monthTx.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
-          }
-        }),
-      )
-    }
-    load()
+  const loadData = useCallback(async () => {
+    const all = await db.transactions.toArray()
+    const yearly = all.filter((t) => t.occurredAt.startsWith(String(year)))
+    setData(
+      MONTHS.map((month, i) => {
+        const m = String(i + 1).padStart(2, '0')
+        const monthTx = yearly.filter((t) => t.occurredAt.slice(5, 7) === m)
+        return {
+          month,
+          income: monthTx.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0),
+          expense: monthTx.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
+        }
+      }),
+    )
   }, [year])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  useEffect(() => {
+    const handler = () => loadData()
+    window.addEventListener('transaction-updated', handler)
+    return () => window.removeEventListener('transaction-updated', handler)
+  }, [loadData])
 
   const isEmpty = data.every((d) => d.income === 0 && d.expense === 0)
 
