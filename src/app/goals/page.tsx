@@ -58,7 +58,7 @@ export default function GoalsPage() {
   function openEdit(goal: SavingGoal) {
     setEditingGoal(goal)
     setGoalName(goal.name)
-    setGoalTarget(String(goal.targetAmount))
+    setGoalTarget(formatCurrencyInput(goal.targetAmount))
     setGoalDate(goal.targetDate || '')
     setGoalError('')
     setModalOpen(true)
@@ -67,7 +67,7 @@ export default function GoalsPage() {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
     setGoalError('')
-    const target = Number(goalTarget)
+    const target = parseCurrencyInput(goalTarget)
     if (!goalName.trim()) { setGoalError('Name is required'); return }
     if (!target || target <= 0) { setGoalError('Target must be greater than 0'); return }
 
@@ -100,7 +100,7 @@ export default function GoalsPage() {
   async function handleContribute(e: React.FormEvent) {
     e.preventDefault()
     setContribError('')
-    const amount = Number(contribAmount)
+    const amount = parseCurrencyInput(contribAmount)
     if (!amount || amount <= 0) { setContribError('Amount must be greater than 0'); return }
     if (!contribGoal) return
 
@@ -241,12 +241,12 @@ export default function GoalsPage() {
               <div>
                 <label className="block text-sm font-medium text-foreground">Target Amount (Rp)</label>
                 <input type="text" inputMode="numeric" value={goalTarget}
-                  onChange={(e) => { setGoalTarget(e.target.value.replace(/\D/g, '')) }}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/\D/g, '')
+                    setGoalTarget(raw ? formatCurrencyInput(Number(raw)) : '')
+                  }}
                   className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   placeholder="0" />
-                {goalTarget && (
-                  <p className="mt-1 text-xs text-muted-foreground">{formatCurrency(Number(goalTarget))}</p>
-                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground">Target Date (optional)</label>
@@ -278,12 +278,12 @@ export default function GoalsPage() {
               <div>
                 <label className="block text-sm font-medium text-foreground">Amount (Rp)</label>
                 <input type="text" inputMode="numeric" value={contribAmount}
-                  onChange={(e) => { setContribAmount(e.target.value.replace(/\D/g, '')) }}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/\D/g, '')
+                    setContribAmount(raw ? formatCurrencyInput(Number(raw)) : '')
+                  }}
                   className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   placeholder="0" autoFocus />
-                {contribAmount && (
-                  <p className="mt-1 text-xs text-muted-foreground">{formatCurrency(Number(contribAmount))}</p>
-                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground">Note (optional)</label>
