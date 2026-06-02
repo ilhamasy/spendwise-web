@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Pencil, Archive, RotateCcw, Trash2, PiggyBank } from 'lucide-react'
+import { Plus, Pencil, Archive, RotateCcw, Trash2, PiggyBank, Calendar } from 'lucide-react'
 import type { SavingGoal } from '@/types'
 import {
   getAllGoals, createGoal, updateGoal, archiveGoal, unarchiveGoal,
   deleteGoal, addContribution, getGoalContributions,
 } from '@/lib/goal-service'
-import { formatCurrency } from '@/lib/currency'
+import { formatCurrency, formatCurrencyInput, parseCurrencyInput } from '@/lib/currency'
 import ConfirmDialog from '@/components/ConfirmDialog'
 
 export default function GoalsPage() {
@@ -240,14 +240,20 @@ export default function GoalsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground">Target Amount (Rp)</label>
-                <input type="number" value={goalTarget} onChange={(e) => setGoalTarget(e.target.value)}
-                  className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                  placeholder="0" min={1} />
+                <input type="text" inputMode="numeric" value={goalTarget}
+                  onChange={(e) => { setGoalTarget(e.target.value.replace(/\D/g, '')) }}
+                  className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  placeholder="0" />
+                {goalTarget && (
+                  <p className="mt-1 text-xs text-muted-foreground">{formatCurrency(Number(goalTarget))}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground">Target Date (optional)</label>
-                <input type="date" value={goalDate} onChange={(e) => setGoalDate(e.target.value)}
-                  className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+                <div className="relative mt-1">
+                  <input type="date" value={goalDate} onChange={(e) => setGoalDate(e.target.value)}
+                    className="block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+                </div>
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setModalOpen(false)}
@@ -271,9 +277,13 @@ export default function GoalsPage() {
               {contribError && <p className="rounded-lg bg-red-50 p-2 text-sm text-red-600 dark:bg-red-950 dark:text-red-400">{contribError}</p>}
               <div>
                 <label className="block text-sm font-medium text-foreground">Amount (Rp)</label>
-                <input type="number" value={contribAmount} onChange={(e) => setContribAmount(e.target.value)}
-                  className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                  placeholder="0" min={1} autoFocus />
+                <input type="text" inputMode="numeric" value={contribAmount}
+                  onChange={(e) => { setContribAmount(e.target.value.replace(/\D/g, '')) }}
+                  className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  placeholder="0" autoFocus />
+                {contribAmount && (
+                  <p className="mt-1 text-xs text-muted-foreground">{formatCurrency(Number(contribAmount))}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground">Note (optional)</label>
