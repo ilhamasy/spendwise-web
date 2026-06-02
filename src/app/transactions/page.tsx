@@ -56,7 +56,7 @@ export default function TransactionsPage() {
       filtered.sort((a, b) => sortDir === 'desc' ? b.amount - a.amount : a.amount - b.amount)
     } else {
       filtered.sort((a, b) => {
-        const cmp = a.occurredAt.localeCompare(b.occurredAt)
+        const cmp = a.occurredAt.localeCompare(b.occurredAt) || a.createdAt.localeCompare(b.createdAt)
         return sortDir === 'desc' ? -cmp : cmp
       })
     }

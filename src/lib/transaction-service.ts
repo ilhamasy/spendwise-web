@@ -38,7 +38,7 @@ export async function getTransactionsByYear(year: number): Promise<Transaction[]
 }
 
 export async function getRecentTransactions(limit = 5): Promise<Transaction[]> {
-  return db.transactions.orderBy('occurredAt').reverse().limit(limit).toArray()
+  return db.transactions.orderBy('createdAt').reverse().limit(limit).toArray()
 }
 
 export async function createTransaction(input: CreateTransactionInput): Promise<Transaction> {
