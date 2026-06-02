@@ -31,8 +31,9 @@ export default function DatePicker({ value, onChange, minDate }: DatePickerProps
   }
 
   function handleSelect(day: number) {
-    const d = new Date(year, month, day)
-    onChange(d.toISOString().split('T')[0])
+    const m = String(month + 1).padStart(2, '0')
+    const d = String(day).padStart(2, '0')
+    onChange(`${year}-${m}-${d}`)
   }
 
   const daysInMonth = getDaysInMonth(year, month)
