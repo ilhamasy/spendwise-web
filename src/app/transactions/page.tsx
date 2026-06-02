@@ -174,26 +174,31 @@ export default function TransactionsPage() {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-3">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="rounded-lg border border-border p-2 text-muted-foreground hover:text-foreground disabled:opacity-30"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <span className="text-xs text-muted-foreground">
-                {page} / {totalPages}
-              </span>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="rounded-lg border border-border p-2 text-muted-foreground hover:text-foreground disabled:opacity-30"
-              >
-                <ChevronRight size={16} />
-              </button>
+          {totalPages > 1 ? (
+            <div className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3">
+              <span className="text-xs text-muted-foreground">{transactions.length} transactions</span>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="rounded-lg border border-border p-2 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="text-sm font-medium text-foreground">{page} / {totalPages}</span>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="rounded-lg border border-border p-2 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
             </div>
+          ) : (
+            transactions.length > 0 && (
+              <p className="text-center text-xs text-muted-foreground">{transactions.length} transactions</p>
+            )
           )}
         </>
       )}
