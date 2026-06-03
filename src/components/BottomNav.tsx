@@ -24,7 +24,7 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2">
-      <div className="relative flex items-center gap-0.5 rounded-full border border-white/20 bg-white/60 px-1.5 py-1.5 shadow-[0_8px_32px_0_rgba(0,0,0,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-gray-950/60 dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.4)]">
+      <div className="relative flex items-center gap-0.5 rounded-full border border-white/10 bg-white/30 px-1.5 py-1.5 shadow-[0_8px_32px_0_rgba(0,0,0,0.08)] backdrop-blur-2xl dark:border-white/5 dark:bg-gray-950/30 dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.4)]">
         {NAV_ITEMS.map((item, index) => {
           const isActive = index === activeIndex
           return (
