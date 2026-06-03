@@ -111,7 +111,7 @@ export default function MoneyFlowCard({ year, period, customStart, customEnd }: 
           const prefix = `${d.getFullYear()}-${m}`
           const monthTx = all.filter((t) => t.occurredAt.startsWith(prefix))
           result.push({
-            label: `${MONTHS[d.getMonth()]} ${d.getFullYear()}`,
+            label: `${MONTHS[d.getMonth()]}${period === 'year' ? '' : ` ${d.getFullYear()}`}`,
             income: monthTx.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0),
             expense: monthTx.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
           })
