@@ -16,7 +16,7 @@ export default function FAB() {
   return (
     <>
       <button
-        className="fixed bottom-24 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/30 shadow-[0_8px_32px_0_rgba(0,0,0,0.08)] backdrop-blur-2xl transition-all hover:scale-105 active:scale-95 dark:border-white/5 dark:bg-gray-950/30 dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.4)]"
+        className="fixed bottom-24 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] backdrop-blur-3xl transition-all hover:scale-105 active:scale-95 dark:border-white/5 dark:bg-gray-950/10 dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]"
         aria-label="Add transaction"
         onClick={() => setModalOpen(true)}
       >
