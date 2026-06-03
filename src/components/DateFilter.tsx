@@ -132,7 +132,7 @@ export default function DateFilter({
           </button>
 
           {pickerOpen && (
-            <div className="absolute left-1/2 top-full z-50 mt-1 -translate-x-1/2 sm:left-0 sm:translate-x-0" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="fixed inset-x-4 bottom-auto top-1/3 z-50 mx-auto max-w-[300px] sm:absolute sm:inset-auto sm:left-1/2 sm:top-full sm:mt-1 sm:-translate-x-1/2" onMouseDown={(e) => e.stopPropagation()}>
               <DateRangePicker
                 startDate={startDate}
                 endDate={endDate}
