@@ -18,7 +18,7 @@ export default function TransactionsPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loaded, setLoaded] = useState(false)
 
-  const [filterType, setFilterType] = useState<FilterPeriod>('year')
+  const [filterType, setFilterType] = useState<FilterPeriod>('month')
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
   const [minDate, setMinDate] = useState('2024-01-01')

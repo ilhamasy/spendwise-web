@@ -25,7 +25,7 @@ function computeChange(current: number, previous: number): { change: string; isP
 }
 
 export default function DashboardPage() {
-  const [period, setPeriod] = useState<FilterPeriod>('year')
+  const [period, setPeriod] = useState<FilterPeriod>('month')
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
   const [minDate, setMinDate] = useState('2024-01-01')
@@ -114,7 +114,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <MoneyFlowCard year={chartYear} />
+          <MoneyFlowCard year={chartYear} period={period} customStart={customStart} customEnd={customEnd} />
         </div>
         <BudgetCard year={chartYear} period={period} />
       </div>
