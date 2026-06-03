@@ -6,14 +6,23 @@ import { db } from '@/lib/db'
 import { getAllCategories } from '@/lib/category-service'
 import { formatCurrency } from '@/lib/currency'
 import { OTHER_COLOR } from '@/lib/constants'
+import type { FilterPeriod } from '@/components/DateFilter'
 
 const TOP_N = 5
 
 interface Props {
   year: number
+  period: FilterPeriod
 }
 
-export default function BudgetCard({ year }: Props) {
+const PERIOD_LABELS: Record<FilterPeriod, string> = {
+  week: 'week',
+  month: 'month',
+  year: 'year',
+  custom: 'period',
+}
+
+export default function BudgetCard({ year, period }: Props) {
   const [data, setData] = useState<{ name: string; value: number; color: string }[]>([])
   const [total, setTotal] = useState(0)
 
@@ -59,7 +68,7 @@ export default function BudgetCard({ year }: Props) {
       <div className="flex h-full flex-col rounded-2xl border border-border bg-card p-5 shadow-sm">
       <h3 className="text-base font-semibold text-foreground">Moneytory</h3>
         <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-          No expense data for {year}
+          No expense data for this {PERIOD_LABELS[period]}
         </div>
       </div>
     )
@@ -79,7 +88,7 @@ export default function BudgetCard({ year }: Props) {
           </ResponsiveContainer>
         </div>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <p className="text-xs text-muted-foreground">Total for year</p>
+          <p className="text-xs text-muted-foreground">Total for {PERIOD_LABELS[period]}</p>
           <p className="text-base font-bold text-foreground">{formatCurrency(total)}</p>
         </div>
       </div>
