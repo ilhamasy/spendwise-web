@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie'
 import type { Transaction, Category, SavingGoal, GoalContribution, Budget } from '@/types'
+import type { SyncQueueItem } from '@/lib/sync-types'
 
 const db = new Dexie('SpendWiseDB') as Dexie & {
   transactions: EntityTable<Transaction, 'id'>
@@ -7,6 +8,7 @@ const db = new Dexie('SpendWiseDB') as Dexie & {
   savingGoals: EntityTable<SavingGoal, 'id'>
   goalContributions: EntityTable<GoalContribution, 'id'>
   budgets: EntityTable<Budget, 'id'>
+  syncQueue: EntityTable<SyncQueueItem, 'id'>
 }
 
 db.version(1).stores({
@@ -22,6 +24,15 @@ db.version(2).stores({
   savingGoals: 'id, status, createdAt',
   goalContributions: 'id, goalId, date',
   budgets: 'id, categoryId, period',
+})
+
+db.version(3).stores({
+  transactions: 'id, type, categoryId, occurredAt, createdAt',
+  categories: 'id, type',
+  savingGoals: 'id, status, createdAt',
+  goalContributions: 'id, goalId, date',
+  budgets: 'id, categoryId, period',
+  syncQueue: '++id, entityType, entityId, operation, createdAt, retries',
 })
 
 export { db }

@@ -1,6 +1,7 @@
 import { db } from './db'
 import type { Category } from '@/types'
 import { generateId } from './utils'
+import { syncManager } from './sync-manager'
 
 const DEFAULT_INCOME_CATEGORIES: Omit<Category, 'id'>[] = [
   { name: 'Salary', type: 'income', icon: '💼', color: '#22c55e', isDefault: true },
@@ -52,6 +53,10 @@ export async function createCategory(
     isDefault: false,
   }
   await db.categories.add(category)
+  syncManager.addToQueue({
+    entityType: 'category', entityId: category.id, operation: 'CREATE',
+    payload: category, timestamp: new Date().toISOString(),
+  })
   return category
 }
 
@@ -64,6 +69,10 @@ export async function updateCategory(
 
   const updated: Category = { ...existing, ...input }
   await db.categories.put(updated)
+  syncManager.addToQueue({
+    entityType: 'category', entityId: id, operation: 'UPDATE',
+    payload: updated, timestamp: new Date().toISOString(),
+  })
   return updated
 }
 
@@ -72,5 +81,9 @@ export async function deleteCategory(id: string): Promise<boolean> {
   if (!existing) return false
   if (existing.isDefault) return false
   await db.categories.delete(id)
+  syncManager.addToQueue({
+    entityType: 'category', entityId: id, operation: 'DELETE',
+    payload: { id }, timestamp: new Date().toISOString(),
+  })
   return true
 }
