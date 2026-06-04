@@ -33,6 +33,7 @@ export default function BudgetPage() {
   const [budgetAmount, setBudgetAmount] = useState('')
   const [budgetPeriod, setBudgetPeriod] = useState<Budget['period']>('monthly')
   const [budgetCategoryId, setBudgetCategoryId] = useState('')
+  const [categoryOpen, setCategoryOpen] = useState(false)
   const [budgetError, setBudgetError] = useState('')
 
   const [deleteTarget, setDeleteTarget] = useState<Budget | null>(null)
@@ -178,13 +179,30 @@ export default function BudgetPage() {
             <h3 className="text-lg font-semibold text-foreground">{editingBudget ? 'Edit Budget' : 'New Budget'}</h3>
             <form onSubmit={handleSave} className="mt-4 space-y-4">
               {budgetError && <p className="rounded-lg bg-red-50 p-2 text-sm text-red-600 dark:bg-red-950 dark:text-red-400">{budgetError}</p>}
-              <div>
+              <div className="relative">
                 <label className="block text-sm font-medium text-foreground">Category</label>
-                <select value={budgetCategoryId} onChange={(e) => setBudgetCategoryId(e.target.value)}
-                  className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
-                  <option value="">Select category</option>
-                  {categories.map((c) => (<option key={c.id} value={c.id}>{c.icon || '📁'} {c.name}</option>))}
-                </select>
+                <button type="button" onClick={() => setCategoryOpen(!categoryOpen)}
+                  className="mt-1 flex w-full items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-foreground hover:border-primary transition-colors">
+                  {budgetCategoryId ? (
+                    <>
+                      <span>{categories.find((c) => c.id === budgetCategoryId)?.icon || '📁'}</span>
+                      <span>{categories.find((c) => c.id === budgetCategoryId)?.name}</span>
+                    </>
+                  ) : (
+                    <span className="text-muted-foreground">Select category</span>
+                  )}
+                </button>
+                {categoryOpen && (
+                  <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-48 overflow-y-auto rounded-xl border border-border bg-card shadow-lg" onMouseDown={(e) => e.stopPropagation()}>
+                    {categories.map((c) => (
+                      <button key={c.id} type="button" onClick={() => { setBudgetCategoryId(c.id); setCategoryOpen(false) }}
+                        className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
+                        <span>{c.icon || '📁'}</span>
+                        <span>{c.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground">Amount (Rp)</label>
