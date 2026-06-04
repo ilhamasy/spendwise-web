@@ -1,6 +1,7 @@
 import { db } from './db'
 import type { SavingGoal, GoalContribution } from '@/types'
 import { generateId } from './utils'
+import { syncManager } from './sync-manager'
 
 export type CreateGoalInput = Omit<SavingGoal, 'id' | 'currentSaved' | 'createdAt' | 'updatedAt'>
 export type UpdateGoalInput = Partial<
@@ -28,6 +29,10 @@ export async function createGoal(input: CreateGoalInput): Promise<SavingGoal> {
     updatedAt: now,
   }
   await db.savingGoals.add(goal)
+  syncManager.addToQueue({
+    entityType: 'goal', entityId: goal.id, operation: 'CREATE',
+    payload: goal, timestamp: now,
+  })
   return goal
 }
 
@@ -44,6 +49,10 @@ export async function updateGoal(
     updatedAt: new Date().toISOString(),
   }
   await db.savingGoals.put(updated)
+  syncManager.addToQueue({
+    entityType: 'goal', entityId: id, operation: 'UPDATE',
+    payload: updated, timestamp: updated.updatedAt,
+  })
   return updated
 }
 
@@ -60,6 +69,10 @@ export async function deleteGoal(id: string): Promise<boolean> {
   if (!existing) return false
   await db.savingGoals.delete(id)
   await db.goalContributions.where('goalId').equals(id).delete()
+  syncManager.addToQueue({
+    entityType: 'goal', entityId: id, operation: 'DELETE',
+    payload: { id }, timestamp: new Date().toISOString(),
+  })
   return true
 }
 

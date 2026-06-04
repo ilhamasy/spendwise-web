@@ -1,6 +1,7 @@
 import { db } from './db'
 import type { Transaction } from '@/types'
 import { generateId } from './utils'
+import { syncManager } from './sync-manager'
 
 export type CreateTransactionInput = Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>
 export type UpdateTransactionInput = Partial<Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>>
@@ -50,6 +51,10 @@ export async function createTransaction(input: CreateTransactionInput): Promise<
     updatedAt: now,
   }
   await db.transactions.add(transaction)
+  syncManager.addToQueue({
+    entityType: 'transaction', entityId: transaction.id, operation: 'CREATE',
+    payload: transaction, timestamp: now,
+  })
   return transaction
 }
 
@@ -66,6 +71,10 @@ export async function updateTransaction(
     updatedAt: new Date().toISOString(),
   }
   await db.transactions.put(updated)
+  syncManager.addToQueue({
+    entityType: 'transaction', entityId: id, operation: 'UPDATE',
+    payload: updated, timestamp: updated.updatedAt,
+  })
   return updated
 }
 
@@ -73,6 +82,10 @@ export async function deleteTransaction(id: string): Promise<boolean> {
   const existing = await db.transactions.get(id)
   if (!existing) return false
   await db.transactions.delete(id)
+  syncManager.addToQueue({
+    entityType: 'transaction', entityId: id, operation: 'DELETE',
+    payload: { id }, timestamp: new Date().toISOString(),
+  })
   return true
 }
 

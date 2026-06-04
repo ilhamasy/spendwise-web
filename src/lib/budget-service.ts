@@ -1,6 +1,7 @@
 import { db } from './db'
 import type { Budget } from '@/types'
 import { generateId } from './utils'
+import { syncManager } from './sync-manager'
 
 export type CreateBudgetInput = Omit<Budget, 'id' | 'createdAt' | 'updatedAt'>
 
@@ -12,6 +13,10 @@ export async function createBudget(input: CreateBudgetInput): Promise<Budget> {
   const now = new Date().toISOString()
   const budget: Budget = { id: generateId(), ...input, createdAt: now, updatedAt: now }
   await db.budgets.add(budget)
+  syncManager.addToQueue({
+    entityType: 'budget', entityId: budget.id, operation: 'CREATE',
+    payload: budget, timestamp: now,
+  })
   return budget
 }
 
@@ -20,6 +25,10 @@ export async function updateBudget(id: string, input: Partial<CreateBudgetInput>
   if (!existing) return undefined
   const updated: Budget = { ...existing, ...input, updatedAt: new Date().toISOString() }
   await db.budgets.put(updated)
+  syncManager.addToQueue({
+    entityType: 'budget', entityId: id, operation: 'UPDATE',
+    payload: updated, timestamp: updated.updatedAt,
+  })
   return updated
 }
 
@@ -27,6 +36,10 @@ export async function deleteBudget(id: string): Promise<boolean> {
   const existing = await db.budgets.get(id)
   if (!existing) return false
   await db.budgets.delete(id)
+  syncManager.addToQueue({
+    entityType: 'budget', entityId: id, operation: 'DELETE',
+    payload: { id }, timestamp: new Date().toISOString(),
+  })
   return true
 }
 
