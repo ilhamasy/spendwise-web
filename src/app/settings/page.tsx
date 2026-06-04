@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/auth'
 import { useTheme } from '@/lib/theme'
 import { useRouter } from 'next/navigation'
 import { db } from '@/lib/db'
-import { Sun, Moon, Monitor, Download, Trash2 } from 'lucide-react'
+import { Sun, Moon, Monitor, Download, Trash2, FileSpreadsheet } from 'lucide-react'
 import CategoryList from '@/components/CategoryList'
 import ConfirmDialog from '@/components/ConfirmDialog'
 
@@ -96,22 +96,32 @@ export default function SettingsPage() {
     router.push('/auth/login')
   }
 
-  function handleExport() {
-    Promise.all([
-      db.transactions.toArray(),
-      db.categories.toArray(),
-      db.savingGoals.toArray(),
-      db.goalContributions.toArray(),
-    ]).then(([txs, cats, goals, contributions]) => {
-      const data = { transactions: txs, categories: cats, savingGoals: goals, goalContributions: contributions }
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'spendwise-export.json'
-      a.click()
-      URL.revokeObjectURL(url)
+  function handleExportCSV() {
+    db.transactions.toArray().then((txs) => {
+      const header = 'Date,Type,Category,Amount,Note'
+      const rows = txs.map((t) => `"${t.occurredAt}","${t.type}","${t.categoryId}","${t.amount}","${t.note || ''}"`)
+      const csv = [header, ...rows].join('\n')
+      downloadFile(csv, 'spendwise-transactions.csv', 'text/csv')
     })
+  }
+
+  function handleExportXLS() {
+    db.transactions.toArray().then((txs) => {
+      const header = '<tr><th>Date</th><th>Type</th><th>Category</th><th>Amount</th><th>Note</th></tr>'
+      const rows = txs.map((t) => `<tr><td>${t.occurredAt}</td><td>${t.type}</td><td>${t.categoryId}</td><td>${t.amount}</td><td>${t.note || ''}</td></tr>`)
+      const html = `<html><body><table border="1">${header}${rows.join('')}</table></body></html>`
+      downloadFile(html, 'spendwise-transactions.xls', 'application/vnd.ms-excel')
+    })
+  }
+
+  function downloadFile(content: string, filename: string, type: string) {
+    const blob = new Blob([content], { type })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   return (
@@ -192,9 +202,13 @@ export default function SettingsPage() {
         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-muted-foreground">Data</h2>
           <div className="mt-3 flex flex-wrap gap-2">
-            <button onClick={handleExport}
+            <button onClick={handleExportCSV}
               className="flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-xs font-medium text-foreground hover:bg-muted">
-              <Download className="h-3.5 w-3.5" /> Export JSON
+              <Download className="h-3.5 w-3.5" /> Export CSV
+            </button>
+            <button onClick={handleExportXLS}
+              className="flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-xs font-medium text-foreground hover:bg-muted">
+              <FileSpreadsheet className="h-3.5 w-3.5" /> Export XLS
             </button>
             <button onClick={() => setClearConfirm(true)}
               className="flex items-center gap-1.5 rounded-lg border border-red-200 px-4 py-2 text-xs font-medium text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950">

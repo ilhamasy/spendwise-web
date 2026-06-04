@@ -38,6 +38,16 @@ export interface GoalContribution {
   createdAt: string
 }
 
+export interface Budget {
+  id: string
+  name: string
+  amount: number
+  period: 'daily' | 'weekly' | 'monthly' | 'yearly'
+  categoryId: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface UserProfile {
   id: string
   name: string

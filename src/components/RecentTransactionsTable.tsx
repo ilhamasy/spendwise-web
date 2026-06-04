@@ -73,7 +73,6 @@ export default function RecentTransactionsTable() {
             <thead>
               <tr className="border-b border-border text-xs text-muted-foreground">
                 <th className="pb-2 text-left font-medium">Datetime</th>
-                <th className="pb-2 text-left font-medium">Note</th>
                 <th className="pb-2 text-left font-medium">Category</th>
                 <th className="pb-2 text-right font-medium">Amount</th>
               </tr>
@@ -85,7 +84,6 @@ export default function RecentTransactionsTable() {
                 return (
                   <tr key={tx.id} className="border-b border-border/50 last:border-0">
                     <td className="py-3 text-muted-foreground">{relativeDateTime(tx.occurredAt, tx.createdAt)}</td>
-                    <td className="py-3 text-foreground max-w-[120px] truncate">{tx.note || '-'}</td>
                     <td className="py-3">
                       <div className="flex items-center gap-1.5">
                         {cat?.icon && <span className="text-sm">{cat.icon}</span>}

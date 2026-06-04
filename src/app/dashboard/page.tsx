@@ -10,6 +10,7 @@ import MoneyFlowCard from '@/components/MoneyFlowCard'
 import BudgetCard from '@/components/BudgetCard'
 import RecentTransactionsTable from '@/components/RecentTransactionsTable'
 import SavingGoalsCard from '@/components/SavingGoalsCard'
+import { BudgetSummaryCard } from '@/components/BudgetSummaryCard'
 import DateFilter, { getFilterDateRange, getChartYear } from '@/components/DateFilter'
 import type { FilterPeriod } from '@/components/DateFilter'
 import { getTotalIncome, getTotalExpense } from '@/lib/transaction-service'
@@ -120,9 +121,8 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <RecentTransactionsTable />
-        </div>
+        <RecentTransactionsTable />
+        <BudgetSummaryCard />
         <SavingGoalsCard />
       </div>
     </div>

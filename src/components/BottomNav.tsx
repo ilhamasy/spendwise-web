@@ -6,12 +6,14 @@ import { motion } from 'framer-motion'
 import dashboardIcon from '@/assets/icons8-dashboard-94.png'
 import billIcon from '@/assets/icons8-bill-94.png'
 import goalIcon from '@/assets/icons8-goal-94.png'
+import budgetIcon from '@/assets/icons8-budget-94.png'
 import settingIcon from '@/assets/icons8-setting-94.png'
 
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/dashboard', icon: dashboardIcon },
   { label: 'Transactions', href: '/transactions', icon: billIcon },
   { label: 'Goals', href: '/goals', icon: goalIcon },
+  { label: 'Budget', href: '/budget', icon: budgetIcon },
   { label: 'Settings', href: '/settings', icon: settingIcon },
 ]
 
