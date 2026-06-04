@@ -77,7 +77,6 @@ export default function BudgetPage() {
     e.preventDefault()
     setBudgetError('')
     const amount = parseCurrencyInput(budgetAmount)
-    if (!budgetName.trim()) { setBudgetError('Name is required'); return }
     if (!amount || amount <= 0) { setBudgetError('Amount must be greater than 0'); return }
     if (!budgetCategoryId) { setBudgetError('Select a category'); return }
 
@@ -133,7 +132,7 @@ export default function BudgetPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-lg">{cat?.icon || '📁'}</span>
                     <div>
-                      <h3 className="text-base font-semibold text-foreground">{budget.name}</h3>
+                      <h3 className="text-base font-semibold text-foreground">{budget.name || cat?.name || 'Budget'}</h3>
                       <p className="text-xs text-muted-foreground">{cat?.name} · {PERIODS.find((p) => p.key === budget.period)?.label}</p>
                     </div>
                   </div>
@@ -180,10 +179,12 @@ export default function BudgetPage() {
             <form onSubmit={handleSave} className="mt-4 space-y-4">
               {budgetError && <p className="rounded-lg bg-red-50 p-2 text-sm text-red-600 dark:bg-red-950 dark:text-red-400">{budgetError}</p>}
               <div>
-                <label className="block text-sm font-medium text-foreground">Name</label>
-                <input type="text" value={budgetName} onChange={(e) => setBudgetName(e.target.value)}
-                  className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                  placeholder="e.g. Food Budget" maxLength={100} autoFocus />
+                <label className="block text-sm font-medium text-foreground">Category</label>
+                <select value={budgetCategoryId} onChange={(e) => setBudgetCategoryId(e.target.value)}
+                  className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
+                  <option value="">Select category</option>
+                  {categories.map((c) => (<option key={c.id} value={c.id}>{c.icon || '📁'} {c.name}</option>))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground">Amount (Rp)</label>
@@ -204,12 +205,10 @@ export default function BudgetPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground">Category</label>
-                <select value={budgetCategoryId} onChange={(e) => setBudgetCategoryId(e.target.value)}
-                  className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
-                  <option value="">Select category</option>
-                  {categories.map((c) => (<option key={c.id} value={c.id}>{c.icon || '📁'} {c.name}</option>))}
-                </select>
+                <label className="block text-sm font-medium text-foreground">Budget Name (Optional)</label>
+                <input type="text" value={budgetName} onChange={(e) => setBudgetName(e.target.value)}
+                  className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  placeholder="e.g. Food Budget" maxLength={100} />
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setModalOpen(false)}
