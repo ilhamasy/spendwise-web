@@ -65,7 +65,7 @@ export class SyncManager {
       const response = await api.sync(lastSyncAt, changes)
       await this.mergeServerChanges(response)
       localStorage.setItem('spendwise-lastSync', response.newSyncTimestamp)
-    } catch (_err) {
+    } catch {
       // Silently fail, will retry later
     } finally {
       this.syncInProgress = false
@@ -116,7 +116,7 @@ export class SyncManager {
           if (item.id != null) await db.syncQueue.delete(item.id)
           continue
         }
-        if (succeededIds.has(item.id!) || !conflictItems(items, response).includes(item.id!)) {
+        if (succeededIds.has(item.id!) || !conflictItems(items).includes(item.id!)) {
           if (item.id != null) await db.syncQueue.delete(item.id)
         } else {
           if (item.id != null) {
@@ -127,7 +127,7 @@ export class SyncManager {
 
       await this.mergeServerChanges(response)
       localStorage.setItem('spendwise-lastSync', response.newSyncTimestamp)
-    } catch (_err) {
+    } catch {
       for (const item of await db.syncQueue.toArray()) {
         if (item.retries >= this.maxRetries) {
           if (item.id != null) await db.syncQueue.delete(item.id)
@@ -182,7 +182,7 @@ export class SyncManager {
   }
 }
 
-function conflictItems(items: SyncQueueItem[], _response: DataSyncResponse): number[] {
+function conflictItems(items: SyncQueueItem[]): number[] {
   return items.filter((i) => i.retries >= 3).map((i) => i.id!)
 }
 
