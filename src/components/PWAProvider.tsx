@@ -5,10 +5,17 @@ import { WifiOff, Download, RefreshCw, AlertCircle, Cloud } from 'lucide-react'
 import { syncManager } from '@/lib/sync-manager'
 import { useSync } from '@/lib/use-sync'
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+}
+
 export default function PWAProvider({ children }: { children: React.ReactNode }) {
-  const [isOffline, setIsOffline] = useState(false)
+  const [isOffline, setIsOffline] = useState(
+    typeof navigator !== 'undefined' ? !navigator.onLine : false
+  )
   const [showInstall, setShowInstall] = useState(false)
-  const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null)
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [dismissedInstall, setDismissedInstall] = useState(false)
   const { status, pendingCount, syncNow } = useSync()
 
@@ -17,7 +24,6 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
 
     navigator.serviceWorker.register('/sw.js').catch(() => {})
 
-    setIsOffline(!navigator.onLine)
     const goOffline = () => setIsOffline(true)
     const goOnline = () => {
       setIsOffline(false)
@@ -29,7 +35,7 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
 
     const handleInstall = (e: Event) => {
       e.preventDefault()
-      setDeferredPrompt(e)
+      setDeferredPrompt(e as BeforeInstallPromptEvent)
       if (!dismissedInstall) setShowInstall(true)
     }
     window.addEventListener('beforeinstallprompt', handleInstall)
@@ -43,8 +49,9 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
 
   async function handleInstall() {
     if (!deferredPrompt) return
-    ;(deferredPrompt as any).prompt()
-    const result = await (deferredPrompt as any).userChoice
+    const promptEvent = deferredPrompt as BeforeInstallPromptEvent
+    promptEvent.prompt()
+    const result = await promptEvent.userChoice
     if (result.outcome === 'accepted') setShowInstall(false)
     setDeferredPrompt(null)
   }
