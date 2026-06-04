@@ -67,16 +67,16 @@ export function BudgetSummaryCard() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <span>{item.emoji}</span>
-                    <span className="text-xs font-medium text-foreground">{item.name}</span>
+                    <span className="text-sm font-medium text-foreground">{item.name}</span>
                   </div>
                   <span className={`text-xs font-semibold ${isOver ? 'text-red-500' : 'text-foreground'}`}>
                     {item.progress}%
                   </span>
                 </div>
-                <div className={`mt-1.5 h-1.5 w-full overflow-hidden rounded-full ${isOver ? 'bg-red-100 dark:bg-red-950/30' : 'bg-red-100 dark:bg-red-950/30'}`}>
+                <div className={`mt-2 h-2 w-full overflow-hidden rounded-full bg-red-100 dark:bg-red-950/30`}>
                   <div className={`h-full rounded-full ${isOver ? 'bg-red-500' : 'bg-green-500'}`} style={{ width: `${Math.min(item.progress, 100)}%` }} />
                 </div>
-                <p className="mt-0.5 text-[10px] text-muted-foreground">
+                <p className="mt-1 text-xs text-muted-foreground">
                   {formatCurrency(item.spent)} / {formatCurrency(item.budget)}
                 </p>
               </div>
