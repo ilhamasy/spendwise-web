@@ -36,20 +36,32 @@ export default function AddTransactionModal({ open, onClose, onSuccess }: Props)
   const [catModalOpen, setCatModalOpen] = useState(false)
   const [catModalType, setCatModalType] = useState<'income' | 'expense'>('expense')
 
+  function loadCats() {
+    seedDefaultCategories().then(() => {
+      Promise.all([getAllCategories(), db.transactions.toArray()]).then(([cats, txs]) => {
+        const counts = new Map<string, number>()
+        txs.forEach((t) => counts.set(t.categoryId, (counts.get(t.categoryId) || 0) + 1))
+        cats.sort((a, b) => {
+          if (a.order != null && b.order != null) return a.order - b.order
+          return (counts.get(b.id) || 0) - (counts.get(a.id) || 0)
+        })
+        setCategories(cats)
+      })
+    })
+  }
+
   useEffect(() => {
     if (open) {
-      seedDefaultCategories().then(() => {
-        Promise.all([getAllCategories(), db.transactions.toArray()]).then(([cats, txs]) => {
-          const counts = new Map<string, number>()
-          txs.forEach((t) => counts.set(t.categoryId, (counts.get(t.categoryId) || 0) + 1))
-          cats.sort((a, b) => {
-            if (a.order != null && b.order != null) return a.order - b.order
-            return (counts.get(b.id) || 0) - (counts.get(a.id) || 0)
-          })
-          setCategories(cats)
-        })
-      })
+      loadCats()
     }
+  }, [open])
+
+  useEffect(() => {
+    function handler() {
+      if (open) loadCats()
+    }
+    window.addEventListener('categories-updated', handler)
+    return () => window.removeEventListener('categories-updated', handler)
   }, [open])
 
   const filteredCategories = categories.filter((c) => c.type === type)

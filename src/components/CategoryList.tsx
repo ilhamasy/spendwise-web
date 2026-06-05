@@ -86,6 +86,7 @@ export default function CategoryList() {
     })
     setCategories(newCategories)
     await db.categories.bulkPut(newCategories)
+    window.dispatchEvent(new Event('categories-updated'))
   }, [categories])
 
   // Drag state for visual feedback
