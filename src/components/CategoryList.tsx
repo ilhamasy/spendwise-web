@@ -66,21 +66,24 @@ export default function CategoryList() {
     await loadCategories()
   }
 
-  const moveCategory = useCallback(async (dragId: string, targetType: string) => {
+  const moveCategory = useCallback(async (dragId: string, targetId: string, targetType: string) => {
     const sameType = categories.filter((c) => c.type === targetType)
-    const idx = sameType.findIndex((c) => c.id === dragId)
-    if (idx === -1) return
-    const newCategories = categories.map((c) => ({ ...c }))
-    const newSameType = newCategories.filter((c) => c.type === targetType)
-    const item = newSameType.splice(idx, 1)[0]
-    newSameType.push(item)
-    newSameType.forEach((c, i) => { c.order = i })
-    for (const c of newCategories) {
+    const fromIdx = sameType.findIndex((c) => c.id === dragId)
+    const toIdx = sameType.findIndex((c) => c.id === targetId)
+    if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return
+
+    const reordered = [...sameType]
+    const [item] = reordered.splice(fromIdx, 1)
+    reordered.splice(toIdx, 0, item)
+    reordered.forEach((c, i) => { c.order = i })
+
+    const newCategories = categories.map((c) => {
       if (c.type === targetType) {
-        const match = newSameType.find((n) => n.id === c.id)
-        if (match) c.order = match.order
+        const match = reordered.find((n) => n.id === c.id)
+        if (match) return { ...c, order: match.order }
       }
-    }
+      return c
+    })
     setCategories(newCategories)
     await db.categories.bulkPut(newCategories)
   }, [categories])
@@ -109,7 +112,7 @@ export default function CategoryList() {
                   category={cat}
                   onEdit={() => handleEdit(cat)}
                   onDelete={() => setDeleteTarget(cat)}
-                  onDragEnd={(dragId) => moveCategory(dragId, 'expense')}
+                  onDragEnd={(dragId, targetId) => moveCategory(dragId, targetId, 'expense')}
                 />
               ))}
             </div>
@@ -126,7 +129,7 @@ export default function CategoryList() {
                   category={cat}
                   onEdit={() => handleEdit(cat)}
                   onDelete={() => setDeleteTarget(cat)}
-                  onDragEnd={(dragId) => moveCategory(dragId, 'income')}
+                  onDragEnd={(dragId, targetId) => moveCategory(dragId, targetId, 'income')}
                 />
               ))}
             </div>
@@ -174,7 +177,7 @@ function CategoryRow({
   category: Category
   onEdit: () => void
   onDelete: () => void
-  onDragEnd: (id: string) => void
+  onDragEnd: (id: string, targetId: string) => void
 }) {
   function handleDragStart(e: React.DragEvent) {
     e.dataTransfer.setData('text/plain', category.id)
@@ -190,7 +193,7 @@ function CategoryRow({
     e.preventDefault()
     const dragId = e.dataTransfer.getData('text/plain')
     if (dragId && dragId !== category.id) {
-      onDragEnd(dragId)
+      onDragEnd(dragId, category.id)
     }
   }
 
