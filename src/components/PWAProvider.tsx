@@ -11,15 +11,15 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export default function PWAProvider({ children }: { children: React.ReactNode }) {
-  const [isOffline, setIsOffline] = useState(
-    typeof navigator !== 'undefined' ? !navigator.onLine : false
-  )
+  const [isOffline, setIsOffline] = useState(false)
   const [showInstall, setShowInstall] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [dismissedInstall, setDismissedInstall] = useState(false)
   const { status, pendingCount, syncNow } = useSync()
 
   useEffect(() => {
+    setIsOffline(!navigator.onLine)
+
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return
 
     navigator.serviceWorker.register('/sw.js').catch(() => {})
