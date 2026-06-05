@@ -6,14 +6,26 @@ import { db } from '@/lib/db'
 import { getAllCategories } from '@/lib/category-service'
 import { formatCurrency } from '@/lib/currency'
 import { OTHER_COLOR } from '@/lib/constants'
+import { getFilterDateRange } from '@/components/DateFilter'
+import type { FilterPeriod } from '@/components/DateFilter'
 
 const TOP_N = 5
 
 interface Props {
   year: number
+  period: FilterPeriod
+  customStart: string
+  customEnd: string
 }
 
-export default function BudgetCard({ year }: Props) {
+const PERIOD_LABELS: Record<FilterPeriod, string> = {
+  week: 'week',
+  month: 'month',
+  year: 'year',
+  custom: 'period',
+}
+
+export default function BudgetCard({ year, period, customStart, customEnd }: Props) {
   const [data, setData] = useState<{ name: string; value: number; color: string }[]>([])
   const [total, setTotal] = useState(0)
 
@@ -22,11 +34,17 @@ export default function BudgetCard({ year }: Props) {
       db.transactions.toArray(),
       getAllCategories('expense'),
     ])
-    const yearly = allTx.filter((t) => t.type === 'expense' && t.occurredAt.startsWith(String(year)))
+
+    const { start, end } = getFilterDateRange(period, customStart, customEnd)
+
+    const filtered = allTx.filter(
+      (t) => t.type === 'expense' && t.occurredAt >= start && t.occurredAt <= end,
+    )
+
     const colorMap = new Map(categories.map((c) => [c.id, c.color || '#6b7280']))
 
     const grouped = new Map<string, { total: number; name: string; color: string }>()
-    yearly.forEach((tx) => {
+    filtered.forEach((tx) => {
       const cat = categories.find((c) => c.id === tx.categoryId)
       const key = tx.categoryId
       if (!grouped.has(key)) {
@@ -42,13 +60,9 @@ export default function BudgetCard({ year }: Props) {
 
     setData(top.map((v) => ({ name: v.name, value: v.total, color: v.color })))
     setTotal(top.reduce((s, v) => s + v.total, 0))
-  }, [year])
+  }, [period, customStart, customEnd, year])
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadData()
-  }, [loadData])
-
+  useEffect(() => { loadData() }, [loadData])
   useEffect(() => {
     const handler = () => loadData()
     window.addEventListener('transaction-updated', handler)
@@ -58,9 +72,9 @@ export default function BudgetCard({ year }: Props) {
   if (data.length === 0) {
     return (
       <div className="flex h-full flex-col rounded-2xl border border-border bg-card p-5 shadow-sm">
-      <h3 className="text-base font-semibold text-foreground">Moneytory</h3>
+        <h3 className="text-base font-semibold text-foreground">Moneytory</h3>
         <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-          No expense data for {year}
+          No expense data for this {PERIOD_LABELS[period]}
         </div>
       </div>
     )
@@ -80,7 +94,7 @@ export default function BudgetCard({ year }: Props) {
           </ResponsiveContainer>
         </div>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <p className="text-xs text-muted-foreground">Total for year</p>
+          <p className="text-xs text-muted-foreground">Total for {PERIOD_LABELS[period]}</p>
           <p className="text-base font-bold text-foreground">{formatCurrency(total)}</p>
         </div>
       </div>
