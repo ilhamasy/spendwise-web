@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import { api, setAuthToken } from '@/lib/api'
 
 interface AuthUser {
   id: string
@@ -24,16 +25,6 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => {},
 })
 
-async function hashPassword(password: string): Promise<string> {
-  const bcrypt = await import('bcryptjs')
-  return bcrypt.hash(password, 12)
-}
-
-async function comparePassword(password: string, hash: string): Promise<boolean> {
-  const bcrypt = await import('bcryptjs')
-  return bcrypt.compare(password, hash)
-}
-
 interface StoredUser {
   id: string
   name: string
@@ -51,12 +42,18 @@ function saveUsers(users: StoredUser[]) {
   localStorage.setItem('spendwise-users', JSON.stringify(users))
 }
 
-function setSession(userId: string) {
+function setSession(userId: string, token?: string) {
   localStorage.setItem('spendwise-session', userId)
+  if (token) {
+    localStorage.setItem('spendwise-token', token)
+    setAuthToken(token)
+  }
 }
 
 function clearSession() {
   localStorage.removeItem('spendwise-session')
+  localStorage.removeItem('spendwise-token')
+  setAuthToken(null)
 }
 
 function getSession(): string | null {
@@ -69,25 +66,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    const token = localStorage.getItem('spendwise-token')
+    if (token) setAuthToken(token)
+
     const sessionId = getSession()
     if (sessionId) {
-      const users = getUsers()
-      const found = users.find((u) => u.id === sessionId)
-      if (found) {
+      const storedProfile = localStorage.getItem('spendwise-profile')
+      if (storedProfile) {
+        const profile = JSON.parse(storedProfile)
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setUser({ id: found.id, name: found.name, email: found.email })
+        setUser({ id: profile.id, name: profile.name, email: profile.email })
+      } else {
+        const users = getUsers()
+        const found = users.find((u) => u.id === sessionId)
+        if (found) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setUser({ id: found.id, name: found.name, email: found.email })
+        }
       }
     }
     setIsLoading(false)
   }, [])
 
   const login = useCallback(async (email: string, password: string) => {
+    try {
+      const res = await api.login(email, password)
+      setSession(res.user.id, res.accessToken)
+      localStorage.setItem('spendwise-profile', JSON.stringify(res.user))
+      setUser({ id: res.user.id, name: res.user.name, email: res.user.email })
+      return
+    } catch {
+      // API failed, fall back to offline localStorage auth
+    }
+
+    const bcrypt = await import('bcryptjs')
     const users = getUsers()
     const found = users.find((u) => u.email === email)
     if (!found) {
       throw new Error('Invalid email or password')
     }
-    const valid = await comparePassword(password, found.passwordHash)
+    const valid = await bcrypt.compare(password, found.passwordHash)
     if (!valid) {
       throw new Error('Invalid email or password')
     }
@@ -96,11 +114,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const register = useCallback(async (name: string, email: string, password: string) => {
+    try {
+      const res = await api.register(name, email, password)
+      setSession(res.user.id, res.accessToken)
+      localStorage.setItem('spendwise-profile', JSON.stringify(res.user))
+      return
+    } catch {
+      // API failed, fall back to offline localStorage registration
+    }
+
+    const bcrypt = await import('bcryptjs')
     const users = getUsers()
     if (users.some((u) => u.email === email)) {
       throw new Error('An account with this email already exists')
     }
-    const passwordHash = await hashPassword(password)
+    const passwordHash = await bcrypt.hash(password, 12)
     const newUser: StoredUser = {
       id: crypto.randomUUID(),
       name,
@@ -112,6 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     clearSession()
+    localStorage.removeItem('spendwise-profile')
     setUser(null)
   }, [])
 

@@ -31,18 +31,18 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 export const api = {
   login: (email: string, password: string) =>
     request<{ accessToken: string; refreshToken: string; user: { id: string; name: string; email: string } }>(
-      '/api/auth/login',
+      '/api/v1/auth/login',
       { method: 'POST', body: JSON.stringify({ email, password }) }
     ),
 
   register: (name: string, email: string, password: string) =>
     request<{ accessToken: string; refreshToken: string; user: { id: string; name: string; email: string } }>(
-      '/api/auth/register',
+      '/api/v1/auth/register',
       { method: 'POST', body: JSON.stringify({ name, email, password }) }
     ),
 
   sync: (lastSyncTimestamp: string, changes: unknown[]) =>
-    request<import('@/lib/sync-types').DataSyncResponse>('/api/sync', {
+    request<import('@/lib/sync-types').DataSyncResponse>('/api/v1/sync', {
       method: 'POST',
       body: JSON.stringify({ lastSyncTimestamp, changes }),
     }),
