@@ -18,6 +18,11 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
 
+    if (!navigator.onLine) {
+      setError('You must be online to sign in')
+      return
+    }
+
     if (!email.trim()) {
       setError('Email is required')
       return

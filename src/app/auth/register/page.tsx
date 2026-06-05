@@ -30,6 +30,11 @@ export default function RegisterPage() {
     e.preventDefault()
     setError('')
 
+    if (!navigator.onLine) {
+      setError('You must be online to register')
+      return
+    }
+
     const validationError = validate()
     if (validationError) {
       setError(validationError)
