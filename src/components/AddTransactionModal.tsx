@@ -58,11 +58,11 @@ export default function AddTransactionModal({ open, onClose, onSuccess }: Props)
 
   useEffect(() => {
     function handler() {
-      if (open) loadCats()
+      loadCats()
     }
     window.addEventListener('categories-updated', handler)
     return () => window.removeEventListener('categories-updated', handler)
-  }, [open])
+  }, [])
 
   const filteredCategories = categories.filter((c) => c.type === type)
   const amount = parseCurrencyInput(amountDisplay)
