@@ -1,11 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { syncManager } from '@/lib/sync-manager'
 import { db } from '@/lib/db'
 
 export default function DataLoader({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
   const [ready, setReady] = useState(false)
+  const [error, setError] = useState('')
   const [status, setStatus] = useState('Syncing your data...')
 
   useEffect(() => {
@@ -18,7 +21,7 @@ export default function DataLoader({ children }: { children: React.ReactNode }) 
       let retries = 0
       while (retries < 3) {
         try {
-          setStatus('Pull data from server...')
+          setStatus('Pulling data from server...')
           await syncManager.pullFromServer()
           await syncManager.processQueue()
 
@@ -31,16 +34,25 @@ export default function DataLoader({ children }: { children: React.ReactNode }) 
           // retry
         }
         retries++
-        setStatus(`Syncing... (attempt ${retries + 1}/3)`)
-        await new Promise((r) => setTimeout(r, 2000))
+        if (retries < 3) {
+          setStatus(`Syncing... (attempt ${retries + 1}/3)`)
+          await new Promise((r) => setTimeout(r, 2000))
+        }
       }
 
-      setReady(true)
+      setError('Failed to sync data. Please login again.')
     }
     load()
   }, [])
 
-  if (!ready) {
+  useEffect(() => {
+    if (error) {
+      localStorage.setItem('spendwise-login-error', error)
+      router.push('/auth/login')
+    }
+  }, [error, router])
+
+  if (!ready && !error) {
     return (
       <div className="flex min-h-dvh items-center justify-center px-4">
         <div className="w-full max-w-sm space-y-6">
