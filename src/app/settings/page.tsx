@@ -28,6 +28,7 @@ export default function SettingsPage() {
 
   // Delete account
   const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [logoutConfirm, setLogoutConfirm] = useState(false)
 
   function handleSaveName() {
     if (displayName.trim() && user) {
@@ -122,6 +123,11 @@ export default function SettingsPage() {
     a.download = filename
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  function handleLogout() {
+    logout()
+    router.push('/auth/login')
   }
 
   return (
@@ -221,7 +227,7 @@ export default function SettingsPage() {
         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-muted-foreground">Account</h2>
           <div className="mt-3 flex flex-wrap gap-2">
-            <button onClick={() => { logout(); router.push('/auth/login') }}
+            <button onClick={() => setLogoutConfirm(true)}
               className="rounded-lg border border-border px-4 py-2 text-xs font-medium text-foreground hover:bg-muted">
               Logout
             </button>
@@ -239,6 +245,10 @@ export default function SettingsPage() {
       <ConfirmDialog open={deleteConfirm} title="Delete Account"
         message="Your account and all data will be permanently deleted. This cannot be undone."
         confirmLabel="Delete Account" variant="danger" onConfirm={handleDeleteAccount} onCancel={() => setDeleteConfirm(false)} />
+
+      <ConfirmDialog open={logoutConfirm} title="Logout"
+        message="Are you sure you want to logout?"
+        confirmLabel="Yes, Logout" onConfirm={handleLogout} onCancel={() => setLogoutConfirm(false)} />
     </div>
   )
 }
