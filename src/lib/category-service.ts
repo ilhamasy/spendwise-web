@@ -26,6 +26,8 @@ export async function seedDefaultCategories(): Promise<void> {
   const count = await db.categories.count()
   if (count > 0) return
 
+  if (navigator.onLine) return
+
   const categories: Category[] = [
     ...DEFAULT_INCOME_CATEGORIES.map((c) => ({ ...c, id: generateId() })),
     ...DEFAULT_EXPENSE_CATEGORIES.map((c) => ({ ...c, id: generateId() })),
