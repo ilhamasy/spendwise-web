@@ -56,7 +56,7 @@ describe('CategoryModal', () => {
     expect(onSave).toHaveBeenCalledWith({
       name: 'Subscriptions',
       type: 'expense',
-      icon: 'tag',
+      icon: '💰',
       color: '#6366f1',
     })
   })

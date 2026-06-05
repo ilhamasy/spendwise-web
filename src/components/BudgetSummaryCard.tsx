@@ -29,7 +29,10 @@ export function BudgetSummaryCard() {
     setLoaded(true)
   }, [])
 
-  useEffect(() => { loadData() }, [loadData])
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadData()
+  }, [loadData])
   useEffect(() => {
     const handler = () => loadData()
     window.addEventListener('transaction-updated', handler)

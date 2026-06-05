@@ -5,10 +5,10 @@ import { Plus, Pencil, Archive, RotateCcw, Trash2, PiggyBank, Calendar } from 'l
 import type { SavingGoal } from '@/types'
 import {
   getAllGoals, createGoal, updateGoal, archiveGoal, unarchiveGoal,
-  deleteGoal, addContribution, getGoalContributions,
+  deleteGoal, addContribution,
 } from '@/lib/goal-service'
 import { createTransaction } from '@/lib/transaction-service'
-import { getAllCategories, seedDefaultCategories } from '@/lib/category-service'
+import { getAllCategories } from '@/lib/category-service'
 import { formatCurrency, formatCurrencyInput, parseCurrencyInput } from '@/lib/currency'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import DatePicker from '@/components/DatePicker'
@@ -43,7 +43,10 @@ export default function GoalsPage() {
     setLoaded(true)
   }, [tab])
 
-  useEffect(() => { loadData() }, [loadData])
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadData()
+  }, [loadData])
 
   useEffect(() => {
     const handler = () => loadData()

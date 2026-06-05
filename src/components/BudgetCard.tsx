@@ -45,6 +45,7 @@ export default function BudgetCard({ year }: Props) {
   }, [year])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData()
   }, [loadData])
 
