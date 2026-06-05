@@ -9,6 +9,7 @@ import {
 
 beforeEach(async () => {
   await db.categories.clear()
+  Object.defineProperty(navigator, 'onLine', { value: false, configurable: true })
 })
 
 describe('seedDefaultCategories', () => {
@@ -27,7 +28,6 @@ describe('seedDefaultCategories', () => {
     await seedDefaultCategories()
     await seedDefaultCategories()
     const all = await getAllCategories()
-    // Should only have one set
     expect(all.length).toBe(13) // 5 income + 8 expense defaults
   })
 
