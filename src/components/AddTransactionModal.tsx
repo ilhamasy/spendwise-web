@@ -25,14 +25,6 @@ export default function AddTransactionModal({ open, onClose, onSuccess }: Props)
   const [note, setNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
-
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 3000)
-      return () => clearTimeout(timer)
-    }
-  }, [toast])
 
   // Fix income fields
   const [isFixIncome, setIsFixIncome] = useState(false)
@@ -130,9 +122,8 @@ export default function AddTransactionModal({ open, onClose, onSuccess }: Props)
         occurredAt: date,
         note: note || undefined,
       })
-      resetForm()
       onSuccess?.()
-      setToast({ message: 'Transaction saved successfully!', type: 'success' })
+      setIsSubmitting(false)
       onClose()
     } catch {
       setError('Failed to save transaction')
@@ -145,14 +136,6 @@ export default function AddTransactionModal({ open, onClose, onSuccess }: Props)
 
   return (
     <>
-      {toast && (
-        <div className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-[60] rounded-lg px-4 py-2.5 text-sm font-medium text-white shadow-lg transition-all animate-[fadeInUp_0.3s_ease] ${
-          toast.type === 'success' ? 'bg-emerald-500' : 'bg-red-500'
-        }`}>
-          {toast.message}
-        </div>
-      )}
-
       <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-4">
         <div className="fixed inset-0 bg-black/50" onClick={handleClose} />
         <div className="relative z-10 w-full max-w-sm rounded-t-2xl sm:rounded-2xl bg-card p-6 shadow-xl max-h-[90vh] overflow-y-auto">
