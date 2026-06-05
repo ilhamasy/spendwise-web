@@ -88,6 +88,10 @@ export default function CategoryList() {
     await db.categories.bulkPut(newCategories)
   }, [categories])
 
+  // Drag state for visual feedback
+  const [dragId, setDragId] = useState<string | null>(null)
+  const [dropTarget, setDropTarget] = useState<string | null>(null)
+
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -113,6 +117,10 @@ export default function CategoryList() {
                   onEdit={() => handleEdit(cat)}
                   onDelete={() => setDeleteTarget(cat)}
                   onDragEnd={(dragId, targetId) => moveCategory(dragId, targetId, 'expense')}
+                  isDragging={dragId === cat.id}
+                  isDropTarget={dropTarget === cat.id}
+                  onSetDragId={setDragId}
+                  onSetDropTarget={setDropTarget}
                 />
               ))}
             </div>
@@ -130,6 +138,10 @@ export default function CategoryList() {
                   onEdit={() => handleEdit(cat)}
                   onDelete={() => setDeleteTarget(cat)}
                   onDragEnd={(dragId, targetId) => moveCategory(dragId, targetId, 'income')}
+                  isDragging={dragId === cat.id}
+                  isDropTarget={dropTarget === cat.id}
+                  onSetDragId={setDragId}
+                  onSetDropTarget={setDropTarget}
                 />
               ))}
             </div>
@@ -173,20 +185,43 @@ function CategoryRow({
   onEdit,
   onDelete,
   onDragEnd,
+  isDragging,
+  isDropTarget,
+  onSetDragId,
+  onSetDropTarget,
 }: {
   category: Category
   onEdit: () => void
   onDelete: () => void
   onDragEnd: (id: string, targetId: string) => void
+  isDragging: boolean
+  isDropTarget: boolean
+  onSetDragId: (id: string | null) => void
+  onSetDropTarget: (id: string | null) => void
 }) {
   function handleDragStart(e: React.DragEvent) {
     e.dataTransfer.setData('text/plain', category.id)
     e.dataTransfer.effectAllowed = 'move'
+    onSetDragId(category.id)
+  }
+
+  function handleDragEnd() {
+    onSetDragId(null)
+    onSetDropTarget(null)
   }
 
   function handleDragOver(e: React.DragEvent) {
     e.preventDefault()
     e.dataTransfer.dropEffect = 'move'
+  }
+
+  function handleDragEnter(e: React.DragEvent) {
+    e.preventDefault()
+    onSetDropTarget(category.id)
+  }
+
+  function handleDragLeave() {
+    onSetDropTarget(null)
   }
 
   function handleDrop(e: React.DragEvent) {
@@ -195,18 +230,25 @@ function CategoryRow({
     if (dragId && dragId !== category.id) {
       onDragEnd(dragId, category.id)
     }
+    onSetDragId(null)
+    onSetDropTarget(null)
   }
 
   return (
     <div
       draggable
       onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5 cursor-grab active:cursor-grabbing transition-colors hover:border-primary/30"
+      className={`flex items-center justify-between rounded-lg border bg-card px-3 py-2.5 transition-all ${
+        isDragging ? 'opacity-50 scale-95 border-dashed border-primary' : ''
+      }${isDropTarget ? ' border-primary ring-1 ring-primary bg-primary/5' : ' border-border'}`}
     >
       <div className="flex items-center gap-3">
-        <GripVertical size={14} className="text-muted-foreground/40" />
+        <GripVertical size={14} className="text-muted-foreground/40 cursor-grab active:cursor-grabbing" />
         <span className="text-base">{category.icon || '📁'}</span>
         <span className="text-sm font-medium text-foreground">{category.name}</span>
         {category.isDefault && (
