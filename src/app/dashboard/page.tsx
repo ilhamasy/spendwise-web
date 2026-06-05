@@ -26,7 +26,7 @@ function computeChange(current: number, previous: number): { change: string; isP
 }
 
 export default function DashboardPage() {
-  const [period, setPeriod] = useState<FilterPeriod>('year')
+  const [period, setPeriod] = useState<FilterPeriod>('month')
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
   const [minDate, setMinDate] = useState('2024-01-01')
