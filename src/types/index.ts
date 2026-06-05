@@ -16,6 +16,7 @@ export interface Category {
   icon?: string
   color?: string
   isDefault?: boolean
+  order?: number
 }
 
 export interface SavingGoal {

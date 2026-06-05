@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { Pencil, Trash2, Plus } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { Pencil, Trash2, Plus, GripVertical } from 'lucide-react'
 import type { Category } from '@/types'
 import {
   getAllCategories,
@@ -10,6 +10,7 @@ import {
   deleteCategory,
   seedDefaultCategories,
 } from '@/lib/category-service'
+import { db } from '@/lib/db'
 import CategoryModal from './CategoryModal'
 import ConfirmDialog from './ConfirmDialog'
 
@@ -23,7 +24,9 @@ export default function CategoryList() {
   async function loadCategories() {
     await seedDefaultCategories()
     const all = await getAllCategories()
-    setCategories(all)
+    const ordered = all.map((c, i) => c.order != null ? c : { ...c, order: i })
+    const sorted = [...ordered].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    setCategories(sorted)
   }
 
   useEffect(() => {
@@ -63,6 +66,25 @@ export default function CategoryList() {
     await loadCategories()
   }
 
+  const moveCategory = useCallback(async (dragId: string, targetType: string) => {
+    const sameType = categories.filter((c) => c.type === targetType)
+    const idx = sameType.findIndex((c) => c.id === dragId)
+    if (idx === -1) return
+    const newCategories = categories.map((c) => ({ ...c }))
+    const newSameType = newCategories.filter((c) => c.type === targetType)
+    const item = newSameType.splice(idx, 1)[0]
+    newSameType.push(item)
+    newSameType.forEach((c, i) => { c.order = i })
+    for (const c of newCategories) {
+      if (c.type === targetType) {
+        const match = newSameType.find((n) => n.id === c.id)
+        if (match) c.order = match.order
+      }
+    }
+    setCategories(newCategories)
+    await db.categories.bulkPut(newCategories)
+  }, [categories])
+
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -87,6 +109,7 @@ export default function CategoryList() {
                   category={cat}
                   onEdit={() => handleEdit(cat)}
                   onDelete={() => setDeleteTarget(cat)}
+                  onDragEnd={(dragId) => moveCategory(dragId, 'expense')}
                 />
               ))}
             </div>
@@ -95,7 +118,7 @@ export default function CategoryList() {
 
         {incomeCategories.length > 0 && (
           <div>
-            <p className="mb-2 text-xs font-medium text-green-500 uppercase">Income</p>
+            <p className="mb-2 mt-3 text-xs font-medium text-green-500 uppercase">Income</p>
             <div className="space-y-1">
               {incomeCategories.map((cat) => (
                 <CategoryRow
@@ -103,6 +126,7 @@ export default function CategoryList() {
                   category={cat}
                   onEdit={() => handleEdit(cat)}
                   onDelete={() => setDeleteTarget(cat)}
+                  onDragEnd={(dragId) => moveCategory(dragId, 'income')}
                 />
               ))}
             </div>
@@ -145,14 +169,41 @@ function CategoryRow({
   category,
   onEdit,
   onDelete,
+  onDragEnd,
 }: {
   category: Category
   onEdit: () => void
   onDelete: () => void
+  onDragEnd: (id: string) => void
 }) {
+  function handleDragStart(e: React.DragEvent) {
+    e.dataTransfer.setData('text/plain', category.id)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    const dragId = e.dataTransfer.getData('text/plain')
+    if (dragId && dragId !== category.id) {
+      onDragEnd(dragId)
+    }
+  }
+
   return (
-    <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
+    <div
+      draggable
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5 cursor-grab active:cursor-grabbing transition-colors hover:border-primary/30"
+    >
       <div className="flex items-center gap-3">
+        <GripVertical size={14} className="text-muted-foreground/40" />
         <span className="text-base">{category.icon || '📁'}</span>
         <span className="text-sm font-medium text-foreground">{category.name}</span>
         {category.isDefault && (
@@ -163,22 +214,22 @@ function CategoryRow({
       </div>
       <div className="flex items-center gap-1">
         {!category.isDefault && (
-          <button
-            onClick={onEdit}
-            className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-            aria-label={`Edit ${category.name}`}
-          >
-            <Pencil size={14} />
-          </button>
-        )}
-        {!category.isDefault && (
-          <button
-            onClick={onDelete}
-            className="rounded p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors"
-            aria-label={`Delete ${category.name}`}
-          >
-            <Trash2 size={14} />
-          </button>
+          <>
+            <button
+              onClick={onEdit}
+              className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              aria-label={`Edit ${category.name}`}
+            >
+              <Pencil size={14} />
+            </button>
+            <button
+              onClick={onDelete}
+              className="rounded p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors"
+              aria-label={`Delete ${category.name}`}
+            >
+              <Trash2 size={14} />
+            </button>
+          </>
         )}
       </div>
     </div>
