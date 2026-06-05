@@ -11,20 +11,26 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export default function PWAProvider({ children }: { children: React.ReactNode }) {
-  const [isOffline, setIsOffline] = useState(
-    typeof navigator !== 'undefined' ? !navigator.onLine : false
-  )
+  const [isOffline, setIsOffline] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [showInstall, setShowInstall] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [dismissedInstall, setDismissedInstall] = useState(false)
   const { status, pendingCount, syncNow } = useSync()
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsOffline(!navigator.onLine)
+
+    if (!('serviceWorker' in navigator)) return
 
     navigator.serviceWorker.register('/sw.js').catch(() => {})
 
-    const goOffline = () => setIsOffline(true)
+    const goOffline = () => {
+      setIsOffline(true)
+    }
     const goOnline = () => {
       setIsOffline(false)
       syncManager.pullFromServer()
@@ -55,6 +61,8 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
     if (result.outcome === 'accepted') setShowInstall(false)
     setDeferredPrompt(null)
   }
+
+  if (!mounted) return <>{children}</>
 
   return (
     <>
