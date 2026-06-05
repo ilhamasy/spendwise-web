@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { api, setAuthToken } from '@/lib/api'
+import { db } from '@/lib/db'
 
 interface AuthUser {
   id: string
@@ -141,6 +142,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(() => {
     clearSession()
     localStorage.removeItem('spendwise-profile')
+    localStorage.removeItem('spendwise-lastSync')
+    db.transactions.clear()
+    db.categories.clear()
+    db.savingGoals.clear()
+    db.goalContributions.clear()
+    db.budgets.clear()
+    db.syncQueue.clear()
     setUser(null)
   }, [])
 
