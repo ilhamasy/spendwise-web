@@ -162,20 +162,24 @@ function CategoryRow({
         )}
       </div>
       <div className="flex items-center gap-1">
-        <button
-          onClick={onEdit}
-          className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-          aria-label={`Edit ${category.name}`}
-        >
-          <Pencil size={14} />
-        </button>
-        <button
-          onClick={onDelete}
-          className="rounded p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors"
-          aria-label={`Delete ${category.name}`}
-        >
-          <Trash2 size={14} />
-        </button>
+        {!category.isDefault && (
+          <button
+            onClick={onEdit}
+            className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            aria-label={`Edit ${category.name}`}
+          >
+            <Pencil size={14} />
+          </button>
+        )}
+        {!category.isDefault && (
+          <button
+            onClick={onDelete}
+            className="rounded p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors"
+            aria-label={`Delete ${category.name}`}
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
       </div>
     </div>
   )
