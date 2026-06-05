@@ -37,6 +37,7 @@ describe('ToastProvider', () => {
   it('showToast is accessible via context', () => {
     let captured: { showToast: (msg: string, type: 'success' | 'error') => void } | null = null
     function Capture() {
+      // eslint-disable-next-line react-hooks/globals
       captured = useToast()
       return null
     }

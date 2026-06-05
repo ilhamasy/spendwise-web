@@ -62,6 +62,7 @@ export default function BudgetCard({ year, period, customStart, customEnd }: Pro
     setTotal(top.reduce((s, v) => s + v.total, 0))
   }, [period, customStart, customEnd, year])
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadData() }, [loadData])
   useEffect(() => {
     const handler = () => loadData()
