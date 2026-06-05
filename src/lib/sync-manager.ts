@@ -42,9 +42,6 @@ export class SyncManager {
       retries: 0,
       createdAt: new Date().toISOString(),
     })
-    if (navigator.onLine && !this.syncInProgress) {
-      this.processQueue()
-    }
   }
 
   private async onOnline() {
@@ -128,14 +125,18 @@ export class SyncManager {
       await this.mergeServerChanges(response)
       localStorage.setItem('spendwise-lastSync', response.newSyncTimestamp)
     } catch {
+      let hasExhausted = false
       for (const item of await db.syncQueue.toArray()) {
         if (item.retries >= this.maxRetries) {
+          hasExhausted = true
           if (item.id != null) await db.syncQueue.delete(item.id)
         } else if (item.id != null) {
           await db.syncQueue.update(item.id, { retries: item.retries + 1 })
         }
       }
-      this.setStatus('error')
+      if (hasExhausted) {
+        this.setStatus('error')
+      }
     } finally {
       this.syncInProgress = false
       if (this.status !== 'error') this.setStatus('idle')

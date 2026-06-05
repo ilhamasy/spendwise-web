@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { WifiOff, Download, RefreshCw, AlertCircle, Cloud } from 'lucide-react'
+import { WifiOff, Download, RefreshCw, Cloud } from 'lucide-react'
 import { syncManager } from '@/lib/sync-manager'
 import { useSync } from '@/lib/use-sync'
 
@@ -16,12 +16,11 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
   const [showInstall, setShowInstall] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [dismissedInstall, setDismissedInstall] = useState(false)
-  const { status, pendingCount, syncNow } = useSync()
+  const { status, pendingCount } = useSync()
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsOffline(!navigator.onLine)
 
     if (!('serviceWorker' in navigator)) return
@@ -79,16 +78,6 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
         <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-2 bg-blue-500 px-4 py-2 text-xs font-medium text-white">
           <RefreshCw className="h-3 w-3 animate-spin" />
           Syncing{pendingCount > 0 ? ` (${pendingCount} pending)` : '...'}
-        </div>
-      )}
-
-      {!isOffline && status === 'error' && pendingCount > 0 && (
-        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-2 bg-red-500 px-4 py-2 text-xs font-medium text-white">
-          <AlertCircle className="h-3 w-3" />
-          Sync failed. {pendingCount} changes pending.
-          <button onClick={syncNow} className="ml-2 underline font-semibold">
-            Retry
-          </button>
         </div>
       )}
 
