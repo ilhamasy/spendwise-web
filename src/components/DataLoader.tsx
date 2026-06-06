@@ -22,7 +22,7 @@ export default function DataLoader({ children }: { children: React.ReactNode }) 
       while (retries < 3) {
         try {
           setStatus('Pulling data from server...')
-          await syncManager.pullFromServer()
+          await syncManager.pullChanges()
           await syncManager.processQueue()
 
           const count = await db.transactions.count()

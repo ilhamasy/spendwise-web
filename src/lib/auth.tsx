@@ -150,7 +150,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     clearSession()
     localStorage.removeItem('spendwise-profile')
-    localStorage.removeItem('spendwise-lastSync')
+    localStorage.removeItem('spendwise-sync-meta')
+    syncManager.destroy()
     setUser(null)
   }, [])
 
