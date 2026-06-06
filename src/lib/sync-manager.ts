@@ -172,7 +172,11 @@ export class SyncManager {
 
     const existing = await tableRef.get(change.entityId).catch(() => null)
     if (existing) {
-      await tableRef.put({ ...(existing as object), ...(change.data as object) })
+      const merged = { ...(existing as Record<string, unknown>), ...(change.data as Record<string, unknown>) }
+      if (table === 'categories' && (existing as Record<string, unknown>).status === 'archived' && !(change.data as Record<string, unknown>).status) {
+        (merged as Record<string, unknown>).status = 'archived'
+      }
+      await tableRef.put(merged)
     } else {
       await tableRef.put(change.data)
     }
