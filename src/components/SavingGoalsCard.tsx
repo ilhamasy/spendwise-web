@@ -9,6 +9,7 @@ import type { SavingGoal } from '@/types'
 export default function SavingGoalsCard() {
   const [goals, setGoals] = useState<SavingGoal[]>([])
   const [loaded, setLoaded] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const loadData = useCallback(async () => {
     setGoals((await getAllGoals('active')).slice(0, 3))
@@ -16,9 +17,14 @@ export default function SavingGoalsCard() {
   }, [])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData()
-  }, [loadData])
+  }, [loadData, refreshKey])
+
+  useEffect(() => {
+    const handler = () => setRefreshKey((k) => k + 1)
+    window.addEventListener('transaction-updated', handler)
+    return () => window.removeEventListener('transaction-updated', handler)
+  }, [])
 
   useEffect(() => {
     const handler = () => loadData()

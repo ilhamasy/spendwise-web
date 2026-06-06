@@ -25,6 +25,7 @@ export default function RecentTransactionsTable() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loaded, setLoaded] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const loadData = useCallback(async () => {
     const [txs] = await Promise.all([getRecentTransactions(3)])
@@ -36,15 +37,14 @@ export default function RecentTransactionsTable() {
   }, [])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData()
-  }, [loadData])
+  }, [loadData, refreshKey])
 
   useEffect(() => {
-    const handler = () => loadData()
+    const handler = () => setRefreshKey((k) => k + 1)
     window.addEventListener('transaction-updated', handler)
     return () => window.removeEventListener('transaction-updated', handler)
-  }, [loadData])
+  }, [])
 
   const getCat = (id: string) => categories.find((c) => c.id === id)
 
