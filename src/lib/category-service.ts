@@ -36,13 +36,10 @@ export async function seedDefaultCategories(): Promise<void> {
 }
 
 export async function getAllCategories(type?: 'income' | 'expense'): Promise<Category[]> {
-  let cats: Category[]
   if (type) {
-    cats = await db.categories.where('type').equals(type).toArray()
-  } else {
-    cats = await db.categories.toArray()
+    return db.categories.where('type').equals(type).toArray()
   }
-  return cats.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  return db.categories.toArray()
 }
 
 export async function getCategoryById(id: string): Promise<Category | undefined> {

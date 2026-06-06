@@ -117,11 +117,11 @@ export default function GoalsPage() {
 
     if (contribDebit) {
       const cats = await getAllCategories('expense')
-      const otherCat = cats.find((c) => c.name === 'Other') || cats[0]
+      const savingCat = cats.find((c) => c.name === 'Saving') || cats.find((c) => c.name === 'Other') || cats[0]
       await createTransaction({
         type: 'expense',
         amount,
-        categoryId: otherCat?.id || '',
+        categoryId: savingCat?.id || '',
         occurredAt: new Date().toISOString().split('T')[0],
         note: `Savings: ${contribGoal.name}${contribNote ? ` - ${contribNote}` : ''}`,
       })

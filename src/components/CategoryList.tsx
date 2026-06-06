@@ -10,7 +10,6 @@ import {
   deleteCategory,
   seedDefaultCategories,
 } from '@/lib/category-service'
-import { db } from '@/lib/db'
 import CategoryModal from './CategoryModal'
 import ConfirmDialog from './ConfirmDialog'
 
@@ -64,39 +63,6 @@ export default function CategoryList() {
     await loadCategories()
   }
 
-  async function moveUp(cat: Category) {
-    const sameType = categories.filter((c) => c.type === cat.type)
-    const idx = sameType.findIndex((c) => c.id === cat.id)
-    if (idx <= 0) return
-    const reordered = [...sameType]
-    ;[reordered[idx - 1], reordered[idx]] = [reordered[idx], reordered[idx - 1]]
-    reordered.forEach((c, i) => { c.order = i })
-    applyReorder(reordered, cat.type)
-  }
-
-  async function moveDown(cat: Category) {
-    const sameType = categories.filter((c) => c.type === cat.type)
-    const idx = sameType.findIndex((c) => c.id === cat.id)
-    if (idx === -1 || idx >= sameType.length - 1) return
-    const reordered = [...sameType]
-    ;[reordered[idx], reordered[idx + 1]] = [reordered[idx + 1], reordered[idx]]
-    reordered.forEach((c, i) => { c.order = i })
-    applyReorder(reordered, cat.type)
-  }
-
-  async function applyReorder(reordered: Category[], targetType: string) {
-    const newCategories = categories.map((c) => {
-      if (c.type === targetType) {
-        const match = reordered.find((n) => n.id === c.id)
-        if (match) return { ...c, order: match.order }
-      }
-      return c
-    })
-    setCategories(newCategories)
-    await db.categories.bulkPut(newCategories)
-    window.dispatchEvent(new Event('categories-updated'))
-  }
-
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -115,17 +81,30 @@ export default function CategoryList() {
           <div>
             <p className="mb-2 text-xs font-medium text-red-500 uppercase">Expense</p>
             <div className="space-y-1">
-              {expenseCategories.map((cat, idx, arr) => (
-                <CategoryRow
-                  key={cat.id}
-                  category={cat}
-                  onEdit={() => handleEdit(cat)}
-                  onDelete={() => setDeleteTarget(cat)}
-                  onMoveUp={() => moveUp(cat)}
-                  onMoveDown={() => moveDown(cat)}
-                  isFirst={idx === 0}
-                  isLast={idx === arr.length - 1}
-                />
+              {expenseCategories.map((cat) => (
+                <div key={cat.id} className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
+                  <div className="flex items-center gap-3">
+                    <span className="text-base">{cat.icon || '📁'}</span>
+                    <span className="text-sm font-medium text-foreground">{cat.name}</span>
+                    {cat.isDefault && (
+                      <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">default</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {!cat.isDefault && (
+                      <>
+                        <button onClick={() => handleEdit(cat)}
+                          className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+                          <Pencil size={14} />
+                        </button>
+                        <button onClick={() => setDeleteTarget(cat)}
+                          className="rounded p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors">
+                          <Trash2 size={14} />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -135,17 +114,30 @@ export default function CategoryList() {
           <div>
             <p className="mb-2 mt-3 text-xs font-medium text-green-500 uppercase">Income</p>
             <div className="space-y-1">
-              {incomeCategories.map((cat, idx, arr) => (
-                <CategoryRow
-                  key={cat.id}
-                  category={cat}
-                  onEdit={() => handleEdit(cat)}
-                  onDelete={() => setDeleteTarget(cat)}
-                  onMoveUp={() => moveUp(cat)}
-                  onMoveDown={() => moveDown(cat)}
-                  isFirst={idx === 0}
-                  isLast={idx === arr.length - 1}
-                />
+              {incomeCategories.map((cat) => (
+                <div key={cat.id} className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
+                  <div className="flex items-center gap-3">
+                    <span className="text-base">{cat.icon || '📁'}</span>
+                    <span className="text-sm font-medium text-foreground">{cat.name}</span>
+                    {cat.isDefault && (
+                      <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">default</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {!cat.isDefault && (
+                      <>
+                        <button onClick={() => handleEdit(cat)}
+                          className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+                          <Pencil size={14} />
+                        </button>
+                        <button onClick={() => setDeleteTarget(cat)}
+                          className="rounded p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors">
+                          <Trash2 size={14} />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -162,10 +154,7 @@ export default function CategoryList() {
         open={modalOpen}
         category={editingCategory}
         onSave={handleSave}
-        onClose={() => {
-          setModalOpen(false)
-          setEditingCategory(null)
-        }}
+        onClose={() => { setModalOpen(false); setEditingCategory(null) }}
       />
 
       <ConfirmDialog
@@ -179,68 +168,6 @@ export default function CategoryList() {
         onConfirm={deleteTarget?.isDefault ? () => setDeleteTarget(null) : handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
-  )
-}
-
-function CategoryRow({
-  category,
-  onEdit,
-  onDelete,
-  onMoveUp,
-  onMoveDown,
-  isFirst,
-  isLast,
-}: {
-  category: Category
-  onEdit: () => void
-  onDelete: () => void
-  onMoveUp: () => void
-  onMoveDown: () => void
-  isFirst: boolean
-  isLast: boolean
-}) {
-  return (
-    <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
-      <div className="flex items-center gap-3">
-        <div className="flex flex-col gap-0.5">
-          <button onClick={onMoveUp} disabled={isFirst}
-            className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors">
-            <svg width="10" height="10" viewBox="0 0 10 10"><path d="M5 2L2 6h6L5 2z" fill="currentColor"/></svg>
-          </button>
-          <button onClick={onMoveDown} disabled={isLast}
-            className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors">
-            <svg width="10" height="10" viewBox="0 0 10 10"><path d="M5 8L2 4h6L5 8z" fill="currentColor"/></svg>
-          </button>
-        </div>
-        <span className="text-base">{category.icon || '📁'}</span>
-        <span className="text-sm font-medium text-foreground">{category.name}</span>
-        {category.isDefault && (
-          <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-            default
-          </span>
-        )}
-      </div>
-      <div className="flex items-center gap-1">
-        {!category.isDefault && (
-          <>
-            <button
-              onClick={onEdit}
-              className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              aria-label={`Edit ${category.name}`}
-            >
-              <Pencil size={14} />
-            </button>
-            <button
-              onClick={onDelete}
-              className="rounded p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors"
-              aria-label={`Delete ${category.name}`}
-            >
-              <Trash2 size={14} />
-            </button>
-          </>
-        )}
-      </div>
     </div>
   )
 }
