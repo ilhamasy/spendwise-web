@@ -179,12 +179,11 @@ class SyncManager {
     // Never hard-delete categories — always archive for transaction references
     if (change.entityType === 'category') {
       const existing = await tableRef.get(change.entityId).catch(() => null)
-      if (existing) {
-        const data = existing as Record<string, unknown>
-        data.status = 'archived'
-        data.isDeleted = true
-        await tableRef.put(data)
-      }
+      const data = (existing || {}) as Record<string, unknown>
+      data.id = change.entityId
+      data.status = 'archived'
+      data.isDeleted = true
+      await tableRef.put(data)
       return
     }
 
