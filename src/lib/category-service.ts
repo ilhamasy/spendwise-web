@@ -26,20 +26,19 @@ export async function seedDefaultCategories(): Promise<void> {
   const count = await db.categories.count()
   if (count > 0) return
 
-  if (navigator.onLine) return
-
   const categories: Category[] = [
-    ...DEFAULT_INCOME_CATEGORIES.map((c) => ({ ...c, id: generateId() })),
-    ...DEFAULT_EXPENSE_CATEGORIES.map((c) => ({ ...c, id: generateId() })),
+    ...DEFAULT_INCOME_CATEGORIES.map((c) => ({ ...c, id: generateId(), status: 'active' as const })),
+    ...DEFAULT_EXPENSE_CATEGORIES.map((c) => ({ ...c, id: generateId(), status: 'active' as const })),
   ]
   await db.categories.bulkAdd(categories)
 }
 
 export async function getAllCategories(type?: 'income' | 'expense'): Promise<Category[]> {
+  let collection = db.categories.toCollection()
   if (type) {
-    return db.categories.where('type').equals(type).toArray()
+    collection = db.categories.where('type').equals(type)
   }
-  return db.categories.toArray()
+  return (await collection.toArray()).filter((c) => c.status !== 'archived')
 }
 
 export async function getCategoryById(id: string): Promise<Category | undefined> {
@@ -88,10 +87,14 @@ export async function deleteCategory(id: string): Promise<boolean> {
   const existing = await db.categories.get(id)
   if (!existing) return false
   if (existing.isDefault) return false
-  await db.categories.delete(id)
-  syncManager.addToQueue({
-    entityType: 'category', entityId: id, operation: 'DELETE',
-    payload: { id }, timestamp: new Date().toISOString(),
-  })
+
+  const txs = await db.transactions.where('categoryId').equals(id).count()
+  if (txs > 0) {
+    existing.status = 'archived'
+    await db.categories.put(existing)
+  } else {
+    await db.categories.delete(id)
+  }
+
   return true
 }

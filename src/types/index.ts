@@ -16,6 +16,7 @@ export interface Category {
   icon?: string
   color?: string
   isDefault?: boolean
+  status?: 'active' | 'archived'
 }
 
 export interface SavingGoal {

@@ -10,6 +10,7 @@ import {
   deleteCategory,
   seedDefaultCategories,
 } from '@/lib/category-service'
+import { db } from '@/lib/db'
 import CategoryModal from './CategoryModal'
 import ConfirmDialog from './ConfirmDialog'
 
@@ -23,9 +24,17 @@ export default function CategoryList() {
   async function loadCategories() {
     await seedDefaultCategories()
     const all = await getAllCategories()
-    const unique = all.filter(
-      (c, i, arr) => arr.findIndex((x) => x.name === c.name && x.type === c.type) === i,
-    )
+    const seen = new Map<string, boolean>()
+    const unique: Category[] = []
+    for (const c of all) {
+      const key = `${c.name}-${c.type}`
+      if (seen.has(key)) {
+        await db.categories.delete(c.id)
+      } else {
+        seen.set(key, true)
+        unique.push(c)
+      }
+    }
     setCategories(unique)
   }
 
