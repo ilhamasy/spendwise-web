@@ -192,7 +192,7 @@ class SyncManager {
   }
 
   private async upsert(table: string, change: { entityId: string; data: unknown }) {
-    const tableRef = (db as unknown as Record<string, { get: (id: string) => Promise<unknown>; put: (data: unknown) => Promise<unknown> }>)[table]
+    const tableRef = (db as unknown as Record<string, { get: (id: string) => Promise<unknown>; put: (data: unknown) => Promise<void>; toArray?: () => Promise<unknown[]> }>)[table]
     if (!tableRef) return
 
     const existing = await tableRef.get(change.entityId).catch(() => null)
@@ -211,6 +211,17 @@ class SyncManager {
         await tableRef.put(merged)
       }
     } else {
+      if (table === 'transactions' && tableRef.toArray) {
+        const all = await tableRef.toArray()
+        const matches = (all as Record<string, unknown>[]).filter((t: Record<string, unknown>) =>
+          t.type === changeData.type &&
+          t.amount === changeData.amount &&
+          t.categoryId === changeData.categoryId &&
+          t.occurredAt === changeData.occurredAt &&
+          (t.note || '') === (changeData.note || '')
+        )
+        if (matches.length > 0) return
+      }
       await tableRef.put(changeData)
     }
   }
