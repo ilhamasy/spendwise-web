@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Pencil, Trash2, Plus, GripVertical } from 'lucide-react'
 import type { Category } from '@/types'
 import {
@@ -24,9 +24,7 @@ export default function CategoryList() {
   async function loadCategories() {
     await seedDefaultCategories()
     const all = await getAllCategories()
-    const ordered = all.map((c, i) => c.order != null ? c : { ...c, order: i })
-    const sorted = [...ordered].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-    setCategories(sorted)
+    setCategories(all)
   }
 
   useEffect(() => {
@@ -66,7 +64,7 @@ export default function CategoryList() {
     await loadCategories()
   }
 
-  const moveCategory = useCallback(async (dragId: string, targetId: string, targetType: string) => {
+  async function moveCategory(dragId: string, targetId: string, targetType: string) {
     const sameType = categories.filter((c) => c.type === targetType)
     const fromIdx = sameType.findIndex((c) => c.id === dragId)
     const toIdx = sameType.findIndex((c) => c.id === targetId)
@@ -87,11 +85,7 @@ export default function CategoryList() {
     setCategories(newCategories)
     await db.categories.bulkPut(newCategories)
     window.dispatchEvent(new Event('categories-updated'))
-  }, [categories])
-
-  // Drag state for visual feedback
-  const [dragId, setDragId] = useState<string | null>(null)
-  const [dropTarget, setDropTarget] = useState<string | null>(null)
+  }
 
   return (
     <div>
@@ -117,11 +111,7 @@ export default function CategoryList() {
                   category={cat}
                   onEdit={() => handleEdit(cat)}
                   onDelete={() => setDeleteTarget(cat)}
-                  onDragEnd={(dragId, targetId) => moveCategory(dragId, targetId, 'expense')}
-                  isDragging={dragId === cat.id}
-                  isDropTarget={dropTarget === cat.id}
-                  onSetDragId={setDragId}
-                  onSetDropTarget={setDropTarget}
+                  onDrop={(dragId, targetId) => moveCategory(dragId, targetId, 'expense')}
                 />
               ))}
             </div>
@@ -138,11 +128,7 @@ export default function CategoryList() {
                   category={cat}
                   onEdit={() => handleEdit(cat)}
                   onDelete={() => setDeleteTarget(cat)}
-                  onDragEnd={(dragId, targetId) => moveCategory(dragId, targetId, 'income')}
-                  isDragging={dragId === cat.id}
-                  isDropTarget={dropTarget === cat.id}
-                  onSetDragId={setDragId}
-                  onSetDropTarget={setDropTarget}
+                  onDrop={(dragId, targetId) => moveCategory(dragId, targetId, 'income')}
                 />
               ))}
             </div>
@@ -185,30 +171,23 @@ function CategoryRow({
   category,
   onEdit,
   onDelete,
-  onDragEnd,
-  isDragging,
-  isDropTarget,
-  onSetDragId,
-  onSetDropTarget,
+  onDrop,
 }: {
   category: Category
   onEdit: () => void
   onDelete: () => void
-  onDragEnd: (id: string, targetId: string) => void
-  isDragging: boolean
-  isDropTarget: boolean
-  onSetDragId: (id: string | null) => void
-  onSetDropTarget: (id: string | null) => void
+  onDrop: (dragId: string, targetId: string) => void
 }) {
   function handleDragStart(e: React.DragEvent) {
     e.dataTransfer.setData('text/plain', category.id)
     e.dataTransfer.effectAllowed = 'move'
-    onSetDragId(category.id)
+    const el = e.currentTarget as HTMLElement
+    el.style.opacity = '0.4'
   }
 
-  function handleDragEnd() {
-    onSetDragId(null)
-    onSetDropTarget(null)
+  function handleDragEnd(e: React.DragEvent) {
+    const el = e.currentTarget as HTMLElement
+    el.style.opacity = '1'
   }
 
   function handleDragOver(e: React.DragEvent) {
@@ -216,23 +195,12 @@ function CategoryRow({
     e.dataTransfer.dropEffect = 'move'
   }
 
-  function handleDragEnter(e: React.DragEvent) {
-    e.preventDefault()
-    onSetDropTarget(category.id)
-  }
-
-  function handleDragLeave() {
-    onSetDropTarget(null)
-  }
-
   function handleDrop(e: React.DragEvent) {
     e.preventDefault()
     const dragId = e.dataTransfer.getData('text/plain')
     if (dragId && dragId !== category.id) {
-      onDragEnd(dragId, category.id)
+      onDrop(dragId, category.id)
     }
-    onSetDragId(null)
-    onSetDropTarget(null)
   }
 
   return (
@@ -241,15 +209,11 @@ function CategoryRow({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onDragOver={handleDragOver}
-      onDragEnter={handleDragEnter}
-      onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`flex items-center justify-between rounded-lg border bg-card px-3 py-2.5 transition-all ${
-        isDragging ? 'opacity-50 scale-95 border-dashed border-primary' : ''
-      }${isDropTarget ? ' border-primary ring-1 ring-primary bg-primary/5' : ' border-border'}`}
+      className="flex cursor-grab items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5 transition-colors active:cursor-grabbing"
     >
       <div className="flex items-center gap-3">
-        <GripVertical size={14} className="text-muted-foreground/40 cursor-grab active:cursor-grabbing" />
+        <GripVertical size={14} className="text-muted-foreground/40" />
         <span className="text-base">{category.icon || '📁'}</span>
         <span className="text-sm font-medium text-foreground">{category.name}</span>
         {category.isDefault && (
