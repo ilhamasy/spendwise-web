@@ -25,6 +25,7 @@ export default function DataLoader({ children }: { children: React.ReactNode }) 
 
       await deduplicateTransactions()
       await deduplicateGoals()
+      await deduplicateBudgets()
       await migrateTimestamps()
 
       if (navigator.onLine) {
@@ -98,6 +99,23 @@ async function deduplicateGoals() {
   }
   for (const id of toDelete) {
     await db.savingGoals.delete(id)
+  }
+}
+
+async function deduplicateBudgets() {
+  const all = await db.budgets.orderBy('createdAt').toArray()
+  const seen = new Set<string>()
+  const toDelete: string[] = []
+  for (const b of all) {
+    const key = `${b.categoryId}-${b.period}-${b.amount}`
+    if (seen.has(key)) {
+      toDelete.push(b.id)
+    } else {
+      seen.add(key)
+    }
+  }
+  for (const id of toDelete) {
+    await db.budgets.delete(id)
   }
 }
 
