@@ -1,4 +1,4 @@
-const CACHE_NAME = 'spendwise-v1'
+const CACHE_NAME = 'spendwise-v2'
 
 const STATIC_ASSETS = [
   '/',
@@ -30,6 +30,12 @@ self.addEventListener('activate', (event) => {
 })
 
 self.addEventListener('fetch', (event) => {
+  const { request } = event
+  if (request.method !== 'GET') return
+
+  const url = new URL(request.url)
+  if (url.pathname.startsWith('/api/')) return
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const fetchPromise = fetch(event.request)
