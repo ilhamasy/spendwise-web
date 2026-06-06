@@ -63,10 +63,10 @@ export function BudgetSummaryCard() {
         </div>
       ) : (
         <div className="mt-4 space-y-4">
-          {items.map((item) => {
+          {items.map((item, i) => {
             const isOver = item.progress >= 100
             return (
-              <div key={item.name}>
+              <div key={`budget-${i}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <span>{item.emoji}</span>
