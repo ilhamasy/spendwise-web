@@ -8,17 +8,17 @@ import { formatCurrency } from '@/lib/currency'
 import type { Transaction, Category } from '@/types'
 
 function relativeDateTime(dateStr: string, createdAt: string): string {
-  const d = new Date(dateStr)
+  const [y, m, d] = dateStr.split('-').map(Number)
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const target = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  const target = new Date(y, m - 1, d)
   const diff = (today.getTime() - target.getTime()) / 86400000
 
   const time = new Date(createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 
   if (diff === 0) return `Today ${time}`
   if (diff === 1) return `Yesterday ${time}`
-  return `${d.toLocaleDateString('en-GB')} ${time}`
+  return `${d.toString().padStart(2, '0')}/${m.toString().padStart(2, '0')}/${y} ${time}`
 }
 
 export default function RecentTransactionsTable() {
