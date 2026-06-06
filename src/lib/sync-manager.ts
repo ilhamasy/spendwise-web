@@ -46,8 +46,8 @@ export class SyncManager {
 
   private async onOnline() {
     this.setStatus('idle')
-    await this.pullFromServer()
     await this.processQueue()
+    await this.pullFromServer()
   }
 
   async pullFromServer() {
