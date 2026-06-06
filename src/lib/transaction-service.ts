@@ -8,7 +8,8 @@ export type CreateTransactionInput = Omit<Transaction, 'id' | 'createdAt' | 'upd
 export type UpdateTransactionInput = Partial<Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>>
 
 export async function getAllTransactions(): Promise<Transaction[]> {
-  return db.transactions.orderBy('occurredAt').reverse().toArray()
+  const txns = await db.transactions.orderBy('occurredAt').reverse().toArray()
+  return sortByDateTime(txns)
 }
 
 export async function getTransactionById(id: string): Promise<Transaction | undefined> {
@@ -19,11 +20,12 @@ export async function getTransactionsByDateRange(
   startDate: string,
   endDate: string,
 ): Promise<Transaction[]> {
-  return db.transactions
+  const txns = await db.transactions
     .where('occurredAt')
     .between(startDate, endDate, true, true)
     .reverse()
     .sortBy('occurredAt')
+  return sortByDateTime(txns)
 }
 
 export async function getTransactionsByMonth(
@@ -40,7 +42,17 @@ export async function getTransactionsByYear(year: number): Promise<Transaction[]
 }
 
 export async function getRecentTransactions(limit = 5): Promise<Transaction[]> {
-  return db.transactions.orderBy('createdAt').reverse().limit(limit).toArray()
+  const txns = await db.transactions.orderBy('occurredAt').reverse().limit(limit * 2).toArray()
+  return sortByDateTime(txns).slice(0, limit)
+}
+
+function sortByDateTime(txns: Transaction[]): Transaction[] {
+  return txns.sort((a, b) => {
+    if (a.occurredAt !== b.occurredAt) {
+      return b.occurredAt.localeCompare(a.occurredAt)
+    }
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  })
 }
 
 export async function createTransaction(input: CreateTransactionInput): Promise<Transaction> {
