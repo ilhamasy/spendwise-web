@@ -89,21 +89,12 @@ export async function deleteCategory(id: string): Promise<boolean> {
   if (!existing) return false
   if (existing.isDefault) return false
 
-  const txs = await db.transactions.where('categoryId').equals(id).count()
-  if (txs > 0) {
-    existing.status = 'archived'
-    await db.categories.put(existing)
-    syncManager.addToQueue({
-      entityType: 'category', entityId: id, operation: 'UPDATE',
-      payload: existing, timestamp: new Date().toISOString(),
-    })
-  } else {
-    await db.categories.delete(id)
-    syncManager.addToQueue({
-      entityType: 'category', entityId: id, operation: 'DELETE',
-      payload: { id }, timestamp: new Date().toISOString(),
-    })
-  }
+  existing.status = 'archived'
+  await db.categories.put(existing)
+  syncManager.addToQueue({
+    entityType: 'category', entityId: id, operation: 'UPDATE',
+    payload: existing, timestamp: new Date().toISOString(),
+  })
 
   return true
 }
