@@ -4,20 +4,34 @@ import { useEffect, useState } from 'react'
 import { syncManager } from '@/lib/sync-manager'
 import { db } from '@/lib/db'
 
+const USER_KEY = 'spendwise-current-user'
+
 export default function DataLoader({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
     async function load() {
-      // Clean duplicates before sync
+      const sessionId = localStorage.getItem('spendwise-session')
+      const storedUser = localStorage.getItem(USER_KEY)
+      if (sessionId && storedUser !== sessionId) {
+        localStorage.setItem(USER_KEY, sessionId)
+        await db.transactions.clear()
+        await db.categories.clear()
+        await db.savingGoals.clear()
+        await db.goalContributions.clear()
+        await db.budgets.clear()
+        await db.syncQueue.clear()
+      }
+
       await deduplicateTransactions()
+      await migrateTimestamps()
 
       if (navigator.onLine) {
         try {
           await syncManager.processQueue()
           await syncManager.pullChanges()
         } catch {
-          // Silently fail, app works with local data
+          // Silently fail
         }
       }
       setReady(true)
@@ -56,7 +70,7 @@ async function deduplicateTransactions() {
   const seen = new Set<string>()
   const toDelete: string[] = []
   for (const tx of all) {
-    const key = `${tx.type}-${tx.amount}-${tx.categoryId}-${tx.occurredAt}`
+    const key = `${tx.type}-${tx.amount}-${tx.categoryId}-${tx.occurredAt}-${tx.note || ''}`
     if (seen.has(key)) {
       toDelete.push(tx.id)
     } else {
@@ -65,5 +79,21 @@ async function deduplicateTransactions() {
   }
   for (const id of toDelete) {
     await db.transactions.delete(id)
+  }
+}
+
+async function migrateTimestamps() {
+  const now = new Date().toISOString()
+  const tables = ['transactions', 'savingGoals', 'budgets'] as const
+  for (const table of tables) {
+    const tableRef = (db as unknown as Record<string, { toArray: () => Promise<unknown[]>; put: (data: unknown) => Promise<void> }>)[table]
+    if (!tableRef) continue
+    const all = await tableRef.toArray()
+    for (const item of all as { updatedAt?: string }[]) {
+      if (!item.updatedAt) {
+        item.updatedAt = now
+        await tableRef.put(item)
+      }
+    }
   }
 }

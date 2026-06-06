@@ -173,10 +173,21 @@ class SyncManager {
     const table = tableMap[change.entityType]
     if (!table) return
 
-    const tableRef = (db as unknown as Record<string, { delete: (id: string) => Promise<void> }>)[table]
-    if (tableRef) {
-      await tableRef.delete(change.entityId).catch(() => {})
+    const tableRef = (db as unknown as Record<string, { get: (id: string) => Promise<unknown>; delete: (id: string) => Promise<void>; put: (data: unknown) => Promise<void> }>)[table]
+    if (!tableRef) return
+
+    const existing = await tableRef.get(change.entityId).catch(() => null)
+    if (!existing) return
+
+    // Don't hard-delete archived categories — keep for transaction references
+    const existingData = existing as Record<string, unknown>
+    if (change.entityType === 'category' && existingData.status === 'archived') {
+      existingData.isDeleted = true
+      await tableRef.put(existingData)
+      return
     }
+
+    await tableRef.delete(change.entityId).catch(() => {})
   }
 
   private async upsert(table: string, change: { entityId: string; data: unknown }) {
