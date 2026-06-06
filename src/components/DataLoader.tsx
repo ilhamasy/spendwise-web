@@ -21,9 +21,10 @@ export default function DataLoader({ children }: { children: React.ReactNode }) 
       let retries = 0
       while (retries < 3) {
         try {
+          setStatus('Pushing local changes...')
+          await syncManager.processQueue()
           setStatus('Pulling data from server...')
           await syncManager.pullChanges()
-          await syncManager.processQueue()
 
           const count = await db.transactions.count()
           if (count > 0) {
