@@ -2,22 +2,23 @@
 
 import { useEffect, useState } from 'react'
 import { syncManager } from '@/lib/sync-manager'
+import { db } from '@/lib/db'
 
 export default function DataLoader({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
     async function load() {
-      if (!navigator.onLine) {
-        setReady(true)
-        return
-      }
+      // Clean duplicates before sync
+      await deduplicateTransactions()
 
-      try {
-        await syncManager.processQueue()
-        await syncManager.pullChanges()
-      } catch {
-        // Silently fail, app still works with local data
+      if (navigator.onLine) {
+        try {
+          await syncManager.processQueue()
+          await syncManager.pullChanges()
+        } catch {
+          // Silently fail, app works with local data
+        }
       }
       setReady(true)
     }
@@ -48,4 +49,21 @@ export default function DataLoader({ children }: { children: React.ReactNode }) 
   }
 
   return <>{children}</>
+}
+
+async function deduplicateTransactions() {
+  const all = await db.transactions.orderBy('createdAt').toArray()
+  const seen = new Set<string>()
+  const toDelete: string[] = []
+  for (const tx of all) {
+    const key = `${tx.type}-${tx.amount}-${tx.categoryId}-${tx.occurredAt}`
+    if (seen.has(key)) {
+      toDelete.push(tx.id)
+    } else {
+      seen.add(key)
+    }
+  }
+  for (const id of toDelete) {
+    await db.transactions.delete(id)
+  }
 }

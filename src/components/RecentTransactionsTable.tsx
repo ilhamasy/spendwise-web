@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { getRecentTransactions } from '@/lib/transaction-service'
 import { getCategoryById } from '@/lib/category-service'
@@ -25,23 +25,20 @@ export default function RecentTransactionsTable() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loaded, setLoaded] = useState(false)
-  const [refreshKey, setRefreshKey] = useState(0)
-
-  const loadData = useCallback(async () => {
-    const [txs] = await Promise.all([getRecentTransactions(3)])
-    const catPromises = txs.map((tx) => getCategoryById(tx.categoryId))
-    const cats = (await Promise.all(catPromises)).filter(Boolean) as Category[]
-    setTransactions(txs)
-    setCategories(cats)
-    setLoaded(true)
-  }, [])
+  const [tick, setTick] = useState(0)
 
   useEffect(() => {
-    loadData()
-  }, [loadData, refreshKey])
+    getRecentTransactions(3).then(async (txs) => {
+      const catPromises = txs.map((tx) => getCategoryById(tx.categoryId))
+      const cats = (await Promise.all(catPromises)).filter(Boolean) as Category[]
+      setTransactions(txs)
+      setCategories(cats)
+      setLoaded(true)
+    })
+  }, [tick])
 
   useEffect(() => {
-    const handler = () => setRefreshKey((k) => k + 1)
+    const handler = () => setTick((t) => t + 1)
     window.addEventListener('transaction-updated', handler)
     return () => window.removeEventListener('transaction-updated', handler)
   }, [])
