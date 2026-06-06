@@ -56,8 +56,13 @@ export default function TransactionsPage() {
       filtered.sort((a, b) => sortDir === 'desc' ? b.amount - a.amount : a.amount - b.amount)
     } else {
       filtered.sort((a, b) => {
-        const cmp = a.occurredAt.localeCompare(b.occurredAt) || a.createdAt.localeCompare(b.createdAt)
-        return sortDir === 'desc' ? -cmp : cmp
+        if (a.occurredAt !== b.occurredAt) {
+          return sortDir === 'desc'
+            ? b.occurredAt.localeCompare(a.occurredAt)
+            : a.occurredAt.localeCompare(b.occurredAt)
+        }
+        const timeDiff = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        return sortDir === 'desc' ? timeDiff : -timeDiff
       })
     }
 
@@ -110,19 +115,15 @@ export default function TransactionsPage() {
         />
 
         <div className="ml-auto flex items-center gap-2">
-          <button
-            onClick={() => {
-              if (sortBy === 'date' && sortDir === 'desc') { setSortBy('date'); setSortDir('asc') }
-              else if (sortBy === 'date' && sortDir === 'asc') { setSortBy('amount'); setSortDir('desc') }
-              else if (sortBy === 'amount' && sortDir === 'desc') { setSortBy('amount'); setSortDir('asc') }
-              else { setSortBy('date'); setSortDir('desc') }
-            }}
-            className="rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs text-foreground hover:bg-muted transition-colors"
-          >
-            {sortBy === 'date' && sortDir === 'desc' ? '↓ Newest' :
-             sortBy === 'date' && sortDir === 'asc' ? '↑ Oldest' :
-             sortBy === 'amount' && sortDir === 'desc' ? '↓ Highest' : '↑ Lowest'}
-          </button>
+          <select value={`${sortBy}-${sortDir}`} onChange={(e) => {
+            const [s, d] = e.target.value.split('-') as ['date' | 'amount', 'desc' | 'asc']
+            setSortBy(s); setSortDir(d)
+          }} className="rounded-lg border border-border bg-card px-2 py-1.5 text-xs text-foreground">
+            <option value="date-desc">Newest</option>
+            <option value="date-asc">Oldest</option>
+            <option value="amount-desc">Highest amount</option>
+            <option value="amount-asc">Lowest amount</option>
+          </select>
         </div>
       </div>
 
