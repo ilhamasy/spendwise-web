@@ -12,8 +12,10 @@ import { getAllCategories, createCategory } from '@/lib/category-service'
 import { formatCurrency, formatCurrencyInput, parseCurrencyInput } from '@/lib/currency'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import DatePicker from '@/components/DatePicker'
+import { useToast } from '@/components/ToastProvider'
 
 export default function GoalsPage() {
+  const { showToast } = useToast()
   const [goals, setGoals] = useState<SavingGoal[]>([])
   const [tab, setTab] = useState<'active' | 'archived'>('active')
   const [loaded, setLoaded] = useState(false)
@@ -92,6 +94,7 @@ export default function GoalsPage() {
         targetDate: goalDate || undefined,
         status: 'active',
       })
+      showToast('Saving goal created successfully', 'success')
     }
     setModalOpen(false)
     loadData()
@@ -114,6 +117,7 @@ export default function GoalsPage() {
     if (!contribGoal) return
 
     await addContribution(contribGoal.id, amount, contribNote || undefined)
+    showToast('Contribution added successfully', 'success')
 
     if (contribDebit) {
       const cats = await getAllCategories('expense')

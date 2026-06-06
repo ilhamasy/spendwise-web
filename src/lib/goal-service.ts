@@ -100,6 +100,11 @@ export async function addContribution(
   goal.updatedAt = now
   await db.savingGoals.put(goal)
 
+  syncManager.addToQueue({
+    entityType: 'goal', entityId: goal.id, operation: 'UPDATE',
+    payload: goal, timestamp: now,
+  })
+
   return { contribution, goal }
 }
 
