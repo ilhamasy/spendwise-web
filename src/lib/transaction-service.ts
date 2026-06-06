@@ -45,8 +45,9 @@ export async function getRecentTransactions(limit = 5): Promise<Transaction[]> {
 
 export async function createTransaction(input: CreateTransactionInput): Promise<Transaction> {
   const now = new Date().toISOString()
+  const localId = generateId()
   const transaction: Transaction = {
-    id: generateId(),
+    id: localId,
     ...input,
     createdAt: now,
     updatedAt: now,
@@ -54,24 +55,27 @@ export async function createTransaction(input: CreateTransactionInput): Promise<
 
   if (navigator.onLine) {
     try {
-      await retry(() => api.createTransaction({
+      const serverTxn = await retry(() => api.createTransaction({
         type: input.type,
         amount: input.amount,
         categoryId: input.categoryId,
         occurredAt: input.occurredAt,
         note: input.note,
       }), 2)
-    } catch {
+      transaction.id = serverTxn.id
       await db.transactions.add(transaction)
-      syncManager.addToQueue({
-        entityType: 'transaction', entityId: transaction.id, operation: 'CREATE',
-        payload: transaction, timestamp: now,
-      })
       return transaction
+    } catch {
+      // API failed, use local + queue
     }
   }
 
   await db.transactions.add(transaction)
+  syncManager.addToQueue({
+    entityType: 'transaction', entityId: localId, operation: 'CREATE',
+    payload: transaction, timestamp: now,
+  })
+
   return transaction
 }
 

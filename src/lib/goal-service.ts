@@ -99,21 +99,26 @@ export async function addContribution(
   goal.currentSaved += amount
   goal.updatedAt = now
 
+  let syncedToServer = false
   if (navigator.onLine) {
     try {
       await api.addContribution(goalId, { amount, note, date })
       await api.updateGoal(goalId, { currentSaved: goal.currentSaved })
+      syncedToServer = true
     } catch {
-      await db.goalContributions.add(contribution)
-      await db.savingGoals.put(goal)
-      syncManager.addToQueue({ entityType: 'goal', entityId: goal.id, operation: 'UPDATE', payload: goal, timestamp: now })
-      return { contribution, goal }
+      // API failed, use local + queue for later sync
     }
   }
 
   await db.goalContributions.add(contribution)
   await db.savingGoals.put(goal)
-  syncManager.addToQueue({ entityType: 'goal', entityId: goal.id, operation: 'UPDATE', payload: goal, timestamp: now })
+
+  if (!syncedToServer) {
+    syncManager.addToQueue({
+      entityType: 'goal', entityId: goal.id, operation: 'UPDATE',
+      payload: goal, timestamp: now,
+    })
+  }
 
   return { contribution, goal }
 }
