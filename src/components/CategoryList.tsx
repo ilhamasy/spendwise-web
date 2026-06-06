@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Pencil, Trash2, Plus, GripVertical } from 'lucide-react'
+import { Pencil, Trash2, Plus } from 'lucide-react'
 import type { Category } from '@/types'
 import {
   getAllCategories,
@@ -64,17 +64,27 @@ export default function CategoryList() {
     await loadCategories()
   }
 
-  async function moveCategory(dragId: string, targetId: string, targetType: string) {
-    const sameType = categories.filter((c) => c.type === targetType)
-    const fromIdx = sameType.findIndex((c) => c.id === dragId)
-    const toIdx = sameType.findIndex((c) => c.id === targetId)
-    if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return
-
+  async function moveUp(cat: Category) {
+    const sameType = categories.filter((c) => c.type === cat.type)
+    const idx = sameType.findIndex((c) => c.id === cat.id)
+    if (idx <= 0) return
     const reordered = [...sameType]
-    const [item] = reordered.splice(fromIdx, 1)
-    reordered.splice(toIdx, 0, item)
+    ;[reordered[idx - 1], reordered[idx]] = [reordered[idx], reordered[idx - 1]]
     reordered.forEach((c, i) => { c.order = i })
+    applyReorder(reordered, cat.type)
+  }
 
+  async function moveDown(cat: Category) {
+    const sameType = categories.filter((c) => c.type === cat.type)
+    const idx = sameType.findIndex((c) => c.id === cat.id)
+    if (idx === -1 || idx >= sameType.length - 1) return
+    const reordered = [...sameType]
+    ;[reordered[idx], reordered[idx + 1]] = [reordered[idx + 1], reordered[idx]]
+    reordered.forEach((c, i) => { c.order = i })
+    applyReorder(reordered, cat.type)
+  }
+
+  async function applyReorder(reordered: Category[], targetType: string) {
     const newCategories = categories.map((c) => {
       if (c.type === targetType) {
         const match = reordered.find((n) => n.id === c.id)
@@ -105,13 +115,16 @@ export default function CategoryList() {
           <div>
             <p className="mb-2 text-xs font-medium text-red-500 uppercase">Expense</p>
             <div className="space-y-1">
-              {expenseCategories.map((cat) => (
+              {expenseCategories.map((cat, idx, arr) => (
                 <CategoryRow
                   key={cat.id}
                   category={cat}
                   onEdit={() => handleEdit(cat)}
                   onDelete={() => setDeleteTarget(cat)}
-                  onDrop={(dragId, targetId) => moveCategory(dragId, targetId, 'expense')}
+                  onMoveUp={() => moveUp(cat)}
+                  onMoveDown={() => moveDown(cat)}
+                  isFirst={idx === 0}
+                  isLast={idx === arr.length - 1}
                 />
               ))}
             </div>
@@ -122,13 +135,16 @@ export default function CategoryList() {
           <div>
             <p className="mb-2 mt-3 text-xs font-medium text-green-500 uppercase">Income</p>
             <div className="space-y-1">
-              {incomeCategories.map((cat) => (
+              {incomeCategories.map((cat, idx, arr) => (
                 <CategoryRow
                   key={cat.id}
                   category={cat}
                   onEdit={() => handleEdit(cat)}
                   onDelete={() => setDeleteTarget(cat)}
-                  onDrop={(dragId, targetId) => moveCategory(dragId, targetId, 'income')}
+                  onMoveUp={() => moveUp(cat)}
+                  onMoveDown={() => moveDown(cat)}
+                  isFirst={idx === 0}
+                  isLast={idx === arr.length - 1}
                 />
               ))}
             </div>
@@ -171,49 +187,32 @@ function CategoryRow({
   category,
   onEdit,
   onDelete,
-  onDrop,
+  onMoveUp,
+  onMoveDown,
+  isFirst,
+  isLast,
 }: {
   category: Category
   onEdit: () => void
   onDelete: () => void
-  onDrop: (dragId: string, targetId: string) => void
+  onMoveUp: () => void
+  onMoveDown: () => void
+  isFirst: boolean
+  isLast: boolean
 }) {
-  function handleDragStart(e: React.DragEvent) {
-    e.dataTransfer.setData('text/plain', category.id)
-    e.dataTransfer.effectAllowed = 'move'
-    const el = e.currentTarget as HTMLElement
-    el.style.opacity = '0.4'
-  }
-
-  function handleDragEnd(e: React.DragEvent) {
-    const el = e.currentTarget as HTMLElement
-    el.style.opacity = '1'
-  }
-
-  function handleDragOver(e: React.DragEvent) {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'move'
-  }
-
-  function handleDrop(e: React.DragEvent) {
-    e.preventDefault()
-    const dragId = e.dataTransfer.getData('text/plain')
-    if (dragId && dragId !== category.id) {
-      onDrop(dragId, category.id)
-    }
-  }
-
   return (
-    <div
-      draggable
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
-      className="flex cursor-grab items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5 transition-colors active:cursor-grabbing"
-    >
+    <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
       <div className="flex items-center gap-3">
-        <GripVertical size={14} className="text-muted-foreground/40" />
+        <div className="flex flex-col gap-0.5">
+          <button onClick={onMoveUp} disabled={isFirst}
+            className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors">
+            <svg width="10" height="10" viewBox="0 0 10 10"><path d="M5 2L2 6h6L5 2z" fill="currentColor"/></svg>
+          </button>
+          <button onClick={onMoveDown} disabled={isLast}
+            className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors">
+            <svg width="10" height="10" viewBox="0 0 10 10"><path d="M5 8L2 4h6L5 8z" fill="currentColor"/></svg>
+          </button>
+        </div>
         <span className="text-base">{category.icon || '📁'}</span>
         <span className="text-sm font-medium text-foreground">{category.name}</span>
         {category.isDefault && (
