@@ -128,6 +128,7 @@ export default function AddTransactionModal({ open, onClose, onSuccess }: Props)
       })
       onSuccess?.()
       setIsSubmitting(false)
+      resetForm()
       onClose()
     } catch {
       setError('Failed to save transaction')
