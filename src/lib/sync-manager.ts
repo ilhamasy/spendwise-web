@@ -176,14 +176,15 @@ class SyncManager {
     const tableRef = (db as unknown as Record<string, { get: (id: string) => Promise<unknown>; delete: (id: string) => Promise<void>; put: (data: unknown) => Promise<void> }>)[table]
     if (!tableRef) return
 
-    const existing = await tableRef.get(change.entityId).catch(() => null)
-    if (!existing) return
-
-    // Don't hard-delete archived categories — keep for transaction references
-    const existingData = existing as Record<string, unknown>
-    if (change.entityType === 'category' && existingData.status === 'archived') {
-      existingData.isDeleted = true
-      await tableRef.put(existingData)
+    // Never hard-delete categories — always archive for transaction references
+    if (change.entityType === 'category') {
+      const existing = await tableRef.get(change.entityId).catch(() => null)
+      if (existing) {
+        const data = existing as Record<string, unknown>
+        data.status = 'archived'
+        data.isDeleted = true
+        await tableRef.put(data)
+      }
       return
     }
 
