@@ -144,11 +144,13 @@ export class SyncManager {
   }
 
   private async mergeServerChanges(response: DataSyncResponse) {
+    let hasChanges = false
     for (const change of response.serverChanges) {
       try {
         switch (change.entityType) {
           case 'transaction':
             await this.upsert('transactions', change)
+            hasChanges = true
             break
           case 'category':
             await this.upsert('categories', change)
@@ -163,6 +165,9 @@ export class SyncManager {
       } catch {
         // Skip failed merges
       }
+    }
+    if (hasChanges) {
+      window.dispatchEvent(new Event('transaction-updated'))
     }
   }
 
