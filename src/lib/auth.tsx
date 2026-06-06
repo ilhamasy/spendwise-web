@@ -141,8 +141,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const logout = useCallback(async () => {
-    if (navigator.onLine) {
+    let tries = 0
+    while (navigator.onLine && tries < 3) {
+      const pending = await syncManager.getPendingCount()
+      if (pending === 0) break
       await syncManager.processQueue()
+      tries++
+      if (tries < 3) await new Promise((r) => setTimeout(r, 2000))
     }
     clearSession()
     localStorage.removeItem('spendwise-profile')
