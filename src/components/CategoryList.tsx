@@ -23,7 +23,10 @@ export default function CategoryList() {
   async function loadCategories() {
     await seedDefaultCategories()
     const all = await getAllCategories()
-    setCategories(all)
+    const unique = all.filter(
+      (c, i, arr) => arr.findIndex((x) => x.name === c.name && x.type === c.type) === i,
+    )
+    setCategories(unique)
   }
 
   useEffect(() => {

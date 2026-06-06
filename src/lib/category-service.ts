@@ -49,6 +49,12 @@ export async function getCategoryById(id: string): Promise<Category | undefined>
 export async function createCategory(
   input: Omit<Category, 'id' | 'isDefault'>,
 ): Promise<Category> {
+  const existing = await db.categories
+    .where('name').equals(input.name)
+    .and((c) => c.type === input.type)
+    .first()
+  if (existing) return existing
+
   const category: Category = {
     id: generateId(),
     ...input,
