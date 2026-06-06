@@ -30,7 +30,7 @@ export async function createGoal(input: CreateGoalInput): Promise<SavingGoal> {
     updatedAt: now,
   }
   await db.savingGoals.add(goal)
-  syncManager.addToQueue({
+  await syncManager.addToQueue({
     entityType: 'goal', entityId: goal.id, operation: 'CREATE',
     payload: goal, timestamp: now,
   })
@@ -50,7 +50,7 @@ export async function updateGoal(
     updatedAt: new Date().toISOString(),
   }
   await db.savingGoals.put(updated)
-  syncManager.addToQueue({
+  await syncManager.addToQueue({
     entityType: 'goal', entityId: id, operation: 'UPDATE',
     payload: updated, timestamp: updated.updatedAt,
   })
@@ -70,7 +70,7 @@ export async function deleteGoal(id: string): Promise<boolean> {
   if (!existing) return false
   await db.savingGoals.delete(id)
   await db.goalContributions.where('goalId').equals(id).delete()
-  syncManager.addToQueue({
+  await syncManager.addToQueue({
     entityType: 'goal', entityId: id, operation: 'DELETE',
     payload: { id }, timestamp: new Date().toISOString(),
   })
@@ -114,7 +114,7 @@ export async function addContribution(
   await db.savingGoals.put(goal)
 
   if (!syncedToServer) {
-    syncManager.addToQueue({
+    await syncManager.addToQueue({
       entityType: 'goal', entityId: goal.id, operation: 'UPDATE',
       payload: goal, timestamp: now,
     })

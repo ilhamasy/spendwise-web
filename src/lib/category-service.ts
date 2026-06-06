@@ -61,7 +61,7 @@ export async function createCategory(
     status: 'active',
   }
   await db.categories.add(category)
-  syncManager.addToQueue({
+  await syncManager.addToQueue({
     entityType: 'category', entityId: category.id, operation: 'CREATE',
     payload: category, timestamp: new Date().toISOString(),
   })
@@ -77,7 +77,7 @@ export async function updateCategory(
 
   const updated: Category = { ...existing, ...input }
   await db.categories.put(updated)
-  syncManager.addToQueue({
+  await syncManager.addToQueue({
     entityType: 'category', entityId: id, operation: 'UPDATE',
     payload: updated, timestamp: new Date().toISOString(),
   })
@@ -91,7 +91,7 @@ export async function deleteCategory(id: string): Promise<boolean> {
 
   existing.status = 'archived'
   await db.categories.put(existing)
-  syncManager.addToQueue({
+  await syncManager.addToQueue({
     entityType: 'category', entityId: id, operation: 'UPDATE',
     payload: existing, timestamp: new Date().toISOString(),
   })

@@ -83,7 +83,7 @@ export async function createTransaction(input: CreateTransactionInput): Promise<
   }
 
   await db.transactions.add(transaction)
-  syncManager.addToQueue({
+  await syncManager.addToQueue({
     entityType: 'transaction', entityId: localId, operation: 'CREATE',
     payload: transaction, timestamp: now,
   })
@@ -116,7 +116,7 @@ export async function updateTransaction(
     updatedAt: new Date().toISOString(),
   }
   await db.transactions.put(updated)
-  syncManager.addToQueue({
+  await syncManager.addToQueue({
     entityType: 'transaction', entityId: id, operation: 'UPDATE',
     payload: updated, timestamp: updated.updatedAt,
   })
@@ -127,7 +127,7 @@ export async function deleteTransaction(id: string): Promise<boolean> {
   const existing = await db.transactions.get(id)
   if (!existing) return false
   await db.transactions.delete(id)
-  syncManager.addToQueue({
+  await syncManager.addToQueue({
     entityType: 'transaction', entityId: id, operation: 'DELETE',
     payload: { id }, timestamp: new Date().toISOString(),
   })
