@@ -18,15 +18,16 @@ export function useSync() {
 
     syncManager.getPendingCount().then(setPendingCount)
 
-    let interval: ReturnType<typeof setInterval>
-    const startInterval = () => {
-      interval = setInterval(() => {
-        if (navigator.onLine) {
-          syncManager.processQueue()
-        }
-      }, 30000)
+    if (navigator.onLine) {
+      syncManager.pullFromServer().then(() => syncManager.processQueue())
     }
-    startInterval()
+
+    const interval = setInterval(() => {
+      if (navigator.onLine) {
+        syncManager.pullFromServer()
+        syncManager.processQueue()
+      }
+    }, 30000)
 
     return () => {
       unsubscribe()

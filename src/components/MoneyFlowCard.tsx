@@ -40,17 +40,38 @@ export default function MoneyFlowCard({ year }: Props) {
   const loadData = useCallback(async () => {
     const all = await db.transactions.toArray()
     const yearly = all.filter((t) => t.occurredAt.startsWith(String(year)))
-    setData(
-      MONTHS.map((month, i) => {
-        const m = String(i + 1).padStart(2, '0')
-        const monthTx = yearly.filter((t) => t.occurredAt.slice(5, 7) === m)
-        return {
-          month,
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+
+    if (isMobile) {
+      const currentMonth = year === new Date().getFullYear() ? new Date().getMonth() : 5
+      const months = []
+      for (let i = currentMonth - 2; i <= currentMonth + 2; i++) {
+        let m = i
+        if (m < 0) m += 12
+        if (m > 11) m -= 12
+        const label = MONTHS[m]
+        const key = String(m + 1).padStart(2, '0')
+        const monthTx = yearly.filter((t) => t.occurredAt.slice(5, 7) === key)
+        months.push({
+          month: label,
           income: monthTx.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0),
           expense: monthTx.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
-        }
-      }),
-    )
+        })
+      }
+      setData(months)
+    } else {
+      setData(
+        MONTHS.map((month, i) => {
+          const m = String(i + 1).padStart(2, '0')
+          const monthTx = yearly.filter((t) => t.occurredAt.slice(5, 7) === m)
+          return {
+            month,
+            income: monthTx.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0),
+            expense: monthTx.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
+          }
+        }),
+      )
+    }
   }, [year])
 
   useEffect(() => {

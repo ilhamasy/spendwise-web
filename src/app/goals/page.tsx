@@ -8,7 +8,7 @@ import {
   deleteGoal, addContribution,
 } from '@/lib/goal-service'
 import { createTransaction } from '@/lib/transaction-service'
-import { getAllCategories } from '@/lib/category-service'
+import { getAllCategories, createCategory } from '@/lib/category-service'
 import { formatCurrency, formatCurrencyInput, parseCurrencyInput } from '@/lib/currency'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import DatePicker from '@/components/DatePicker'
@@ -117,11 +117,14 @@ export default function GoalsPage() {
 
     if (contribDebit) {
       const cats = await getAllCategories('expense')
-      const otherCat = cats.find((c) => c.name === 'Other') || cats[0]
+      let savingCat = cats.find((c) => c.name === 'Saving')
+      if (!savingCat) {
+        savingCat = await createCategory({ name: 'Saving', type: 'expense', icon: '💰', color: '#8b5cf6' })
+      }
       await createTransaction({
         type: 'expense',
         amount,
-        categoryId: otherCat?.id || '',
+        categoryId: savingCat?.id || '',
         occurredAt: new Date().toISOString().split('T')[0],
         note: `Savings: ${contribGoal.name}${contribNote ? ` - ${contribNote}` : ''}`,
       })

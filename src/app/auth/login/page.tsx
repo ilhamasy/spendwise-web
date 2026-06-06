@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
@@ -14,9 +14,23 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  useEffect(() => {
+    const msg = localStorage.getItem('spendwise-login-error')
+    if (msg) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setError(msg)
+      localStorage.removeItem('spendwise-login-error')
+    }
+  }, [])
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+
+    if (!navigator.onLine) {
+      setError('You must be online to sign in')
+      return
+    }
 
     if (!email.trim()) {
       setError('Email is required')

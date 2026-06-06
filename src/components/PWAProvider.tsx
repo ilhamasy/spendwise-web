@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { WifiOff, Download, RefreshCw, AlertCircle, Cloud } from 'lucide-react'
+import { WifiOff, Download, RefreshCw, Cloud } from 'lucide-react'
 import { syncManager } from '@/lib/sync-manager'
 import { useSync } from '@/lib/use-sync'
 
@@ -11,20 +11,25 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export default function PWAProvider({ children }: { children: React.ReactNode }) {
-  const [isOffline, setIsOffline] = useState(
-    typeof navigator !== 'undefined' ? !navigator.onLine : false
-  )
+  const [isOffline, setIsOffline] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [showInstall, setShowInstall] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [dismissedInstall, setDismissedInstall] = useState(false)
-  const { status, pendingCount, syncNow } = useSync()
+  const { status, pendingCount } = useSync()
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true)
+    setIsOffline(!navigator.onLine)
+
+    if (!('serviceWorker' in navigator)) return
 
     navigator.serviceWorker.register('/sw.js').catch(() => {})
 
-    const goOffline = () => setIsOffline(true)
+    const goOffline = () => {
+      setIsOffline(true)
+    }
     const goOnline = () => {
       setIsOffline(false)
       syncManager.pullFromServer()
@@ -56,6 +61,8 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
     setDeferredPrompt(null)
   }
 
+  if (!mounted) return <>{children}</>
+
   return (
     <>
       {children}
@@ -71,16 +78,6 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
         <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-2 bg-blue-500 px-4 py-2 text-xs font-medium text-white">
           <RefreshCw className="h-3 w-3 animate-spin" />
           Syncing{pendingCount > 0 ? ` (${pendingCount} pending)` : '...'}
-        </div>
-      )}
-
-      {!isOffline && status === 'error' && pendingCount > 0 && (
-        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-2 bg-red-500 px-4 py-2 text-xs font-medium text-white">
-          <AlertCircle className="h-3 w-3" />
-          Sync failed. {pendingCount} changes pending.
-          <button onClick={syncNow} className="ml-2 underline font-semibold">
-            Retry
-          </button>
         </div>
       )}
 

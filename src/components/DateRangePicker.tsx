@@ -114,7 +114,7 @@ export default function DateRangePicker({
   const canApply = startDate && endDate
 
   return (
-    <div className="w-[300px] rounded-2xl border border-border bg-card p-4 shadow-xl">
+    <div className="w-full max-w-[320px] rounded-2xl border border-border bg-card p-3 shadow-xl mx-auto">
       {/* Navigation */}
       <div className="flex items-center gap-2">
         <button onClick={() => shiftMonths(-1)} className="rounded p-0.5 hover:bg-muted"><ChevronLeft className="h-3.5 w-3.5" /></button>

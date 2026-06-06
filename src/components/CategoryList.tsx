@@ -82,12 +82,29 @@ export default function CategoryList() {
             <p className="mb-2 text-xs font-medium text-red-500 uppercase">Expense</p>
             <div className="space-y-1">
               {expenseCategories.map((cat) => (
-                <CategoryRow
-                  key={cat.id}
-                  category={cat}
-                  onEdit={() => handleEdit(cat)}
-                  onDelete={() => setDeleteTarget(cat)}
-                />
+                <div key={cat.id} className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
+                  <div className="flex items-center gap-3">
+                    <span className="text-base">{cat.icon || '📁'}</span>
+                    <span className="text-sm font-medium text-foreground">{cat.name}</span>
+                    {cat.isDefault && (
+                      <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">default</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {!cat.isDefault && (
+                      <>
+                        <button onClick={() => handleEdit(cat)}
+                          className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+                          <Pencil size={14} />
+                        </button>
+                        <button onClick={() => setDeleteTarget(cat)}
+                          className="rounded p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors">
+                          <Trash2 size={14} />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -95,15 +112,32 @@ export default function CategoryList() {
 
         {incomeCategories.length > 0 && (
           <div>
-            <p className="mb-2 text-xs font-medium text-green-500 uppercase">Income</p>
+            <p className="mb-2 mt-3 text-xs font-medium text-green-500 uppercase">Income</p>
             <div className="space-y-1">
               {incomeCategories.map((cat) => (
-                <CategoryRow
-                  key={cat.id}
-                  category={cat}
-                  onEdit={() => handleEdit(cat)}
-                  onDelete={() => setDeleteTarget(cat)}
-                />
+                <div key={cat.id} className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
+                  <div className="flex items-center gap-3">
+                    <span className="text-base">{cat.icon || '📁'}</span>
+                    <span className="text-sm font-medium text-foreground">{cat.name}</span>
+                    {cat.isDefault && (
+                      <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">default</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {!cat.isDefault && (
+                      <>
+                        <button onClick={() => handleEdit(cat)}
+                          className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+                          <Pencil size={14} />
+                        </button>
+                        <button onClick={() => setDeleteTarget(cat)}
+                          className="rounded p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors">
+                          <Trash2 size={14} />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -120,10 +154,7 @@ export default function CategoryList() {
         open={modalOpen}
         category={editingCategory}
         onSave={handleSave}
-        onClose={() => {
-          setModalOpen(false)
-          setEditingCategory(null)
-        }}
+        onClose={() => { setModalOpen(false); setEditingCategory(null) }}
       />
 
       <ConfirmDialog
@@ -137,46 +168,6 @@ export default function CategoryList() {
         onConfirm={deleteTarget?.isDefault ? () => setDeleteTarget(null) : handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
-  )
-}
-
-function CategoryRow({
-  category,
-  onEdit,
-  onDelete,
-}: {
-  category: Category
-  onEdit: () => void
-  onDelete: () => void
-}) {
-  return (
-    <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
-      <div className="flex items-center gap-3">
-        <span className="text-base">{category.icon || '📁'}</span>
-        <span className="text-sm font-medium text-foreground">{category.name}</span>
-        {category.isDefault && (
-          <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-            default
-          </span>
-        )}
-      </div>
-      <div className="flex items-center gap-1">
-        <button
-          onClick={onEdit}
-          className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-          aria-label={`Edit ${category.name}`}
-        >
-          <Pencil size={14} />
-        </button>
-        <button
-          onClick={onDelete}
-          className="rounded p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors"
-          aria-label={`Delete ${category.name}`}
-        >
-          <Trash2 size={14} />
-        </button>
-      </div>
     </div>
   )
 }
