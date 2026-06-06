@@ -21,7 +21,12 @@ export default function AddTransactionModal({ open, onClose, onSuccess }: Props)
   const [type, setType] = useState<'expense' | 'income'>('expense')
   const [categoryId, setCategoryId] = useState('')
   const [amountDisplay, setAmountDisplay] = useState('')
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const today = () => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
+
+  const [date, setDate] = useState(today())
   const [note, setNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -91,7 +96,7 @@ export default function AddTransactionModal({ open, onClose, onSuccess }: Props)
     setType('expense')
     setCategoryId('')
     setAmountDisplay('')
-    setDate(new Date().toISOString().split('T')[0])
+    setDate(today())
     setNote('')
     setIsFixIncome(false)
     setPayrollType('weekly')

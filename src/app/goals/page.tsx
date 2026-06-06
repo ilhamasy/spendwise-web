@@ -129,7 +129,7 @@ export default function GoalsPage() {
         type: 'expense',
         amount,
         categoryId: savingCat?.id || '',
-        occurredAt: new Date().toISOString().split('T')[0],
+        occurredAt: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`,
         note: `Savings: ${contribGoal.name}${contribNote ? ` - ${contribNote}` : ''}`,
       })
     }
