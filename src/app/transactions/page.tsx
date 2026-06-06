@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Transaction, Category } from '@/types'
 import { db } from '@/lib/db'
-import { getAllCategories } from '@/lib/category-service'
+import { getCategoryById } from '@/lib/category-service'
 import { deleteTransaction } from '@/lib/transaction-service'
 import { formatCurrency } from '@/lib/currency'
 import ConfirmDialog from '@/components/ConfirmDialog'
@@ -36,10 +36,10 @@ export default function TransactionsPage() {
   }, [])
 
   const loadData = useCallback(async () => {
-    const [allTx, cats] = await Promise.all([
-      db.transactions.orderBy('occurredAt').reverse().toArray(),
-      getAllCategories(),
-    ])
+    const allTx = await db.transactions.orderBy('occurredAt').reverse().toArray()
+
+    const uniqueCatIds = [...new Set(allTx.map((t) => t.categoryId))]
+    const cats = (await Promise.all(uniqueCatIds.map((id) => getCategoryById(id)))).filter(Boolean) as Category[]
     setCategories(cats)
     setLoaded(true)
 

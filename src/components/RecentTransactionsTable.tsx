@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { getRecentTransactions } from '@/lib/transaction-service'
-import { getAllCategories } from '@/lib/category-service'
+import { getCategoryById } from '@/lib/category-service'
 import { formatCurrency } from '@/lib/currency'
 import type { Transaction, Category } from '@/types'
 
@@ -27,7 +27,9 @@ export default function RecentTransactionsTable() {
   const [loaded, setLoaded] = useState(false)
 
   const loadData = useCallback(async () => {
-    const [txs, cats] = await Promise.all([getRecentTransactions(3), getAllCategories()])
+    const [txs] = await Promise.all([getRecentTransactions(3)])
+    const catPromises = txs.map((tx) => getCategoryById(tx.categoryId))
+    const cats = (await Promise.all(catPromises)).filter(Boolean) as Category[]
     setTransactions(txs)
     setCategories(cats)
     setLoaded(true)
