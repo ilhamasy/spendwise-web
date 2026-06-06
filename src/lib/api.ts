@@ -41,6 +41,24 @@ export const api = {
       { method: 'POST', body: JSON.stringify({ name, email, password }) }
     ),
 
+  createTransaction: (data: { type: string; amount: number; categoryId: string; occurredAt: string; note?: string }) =>
+    request<{ id: string }>('/api/v1/transactions', { method: 'POST', body: JSON.stringify(data) }),
+
+  createGoal: (data: { name: string; targetAmount: number; currentSaved?: number; targetDate?: string }) =>
+    request<{ id: string }>('/api/v1/goals', { method: 'POST', body: JSON.stringify(data) }),
+
+  updateGoal: (id: string, data: { name?: string; targetAmount?: number; currentSaved?: number; targetDate?: string }) =>
+    request<{ id: string }>('/api/v1/goals/' + id, { method: 'PUT', body: JSON.stringify(data) }),
+
+  addContribution: (goalId: string, data: { amount: number; note?: string; date?: string }) =>
+    request<{ contribution: unknown; goal: unknown }>('/api/v1/goals/' + goalId + '/contributions', { method: 'POST', body: JSON.stringify(data) }),
+
+  createBudget: (data: { name: string; amount: number; period: string; categoryId: string }) =>
+    request<{ id: string }>('/api/v1/budgets', { method: 'POST', body: JSON.stringify(data) }),
+
+  createCategory: (data: { name: string; type: string; icon?: string; color?: string }) =>
+    request<{ id: string }>('/api/v1/categories', { method: 'POST', body: JSON.stringify(data) }),
+
   sync: (lastSyncTimestamp: string, changes: unknown[]) =>
     request<import('@/lib/sync-types').DataSyncResponse>('/api/v1/sync', {
       method: 'POST',

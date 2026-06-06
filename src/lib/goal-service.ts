@@ -2,6 +2,7 @@ import { db } from './db'
 import type { SavingGoal, GoalContribution } from '@/types'
 import { generateId } from './utils'
 import { syncManager } from './sync-manager'
+import { api } from './api'
 
 export type CreateGoalInput = Omit<SavingGoal, 'id' | 'currentSaved' | 'createdAt' | 'updatedAt'>
 export type UpdateGoalInput = Partial<
@@ -94,16 +95,25 @@ export async function addContribution(
     date: date || now.split('T')[0],
     createdAt: now,
   }
-  await db.goalContributions.add(contribution)
 
   goal.currentSaved += amount
   goal.updatedAt = now
-  await db.savingGoals.put(goal)
 
-  syncManager.addToQueue({
-    entityType: 'goal', entityId: goal.id, operation: 'UPDATE',
-    payload: goal, timestamp: now,
-  })
+  if (navigator.onLine) {
+    try {
+      await api.addContribution(goalId, { amount, note, date })
+      await api.updateGoal(goalId, { currentSaved: goal.currentSaved })
+    } catch {
+      await db.goalContributions.add(contribution)
+      await db.savingGoals.put(goal)
+      syncManager.addToQueue({ entityType: 'goal', entityId: goal.id, operation: 'UPDATE', payload: goal, timestamp: now })
+      return { contribution, goal }
+    }
+  }
+
+  await db.goalContributions.add(contribution)
+  await db.savingGoals.put(goal)
+  syncManager.addToQueue({ entityType: 'goal', entityId: goal.id, operation: 'UPDATE', payload: goal, timestamp: now })
 
   return { contribution, goal }
 }

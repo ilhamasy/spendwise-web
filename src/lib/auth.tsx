@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { api, setAuthToken } from '@/lib/api'
 import { db } from '@/lib/db'
+import { syncManager } from '@/lib/sync-manager'
 
 interface AuthUser {
   id: string
@@ -15,7 +16,7 @@ interface AuthContextType {
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
   register: (name: string, email: string, password: string) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -139,7 +140,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     saveUsers([...users, newUser])
   }, [])
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    if (navigator.onLine) {
+      await syncManager.processQueue()
+    }
     clearSession()
     localStorage.removeItem('spendwise-profile')
     localStorage.removeItem('spendwise-lastSync')

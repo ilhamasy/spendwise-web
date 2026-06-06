@@ -2,6 +2,7 @@ import { db } from './db'
 import type { Transaction } from '@/types'
 import { generateId } from './utils'
 import { syncManager } from './sync-manager'
+import { api } from './api'
 
 export type CreateTransactionInput = Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>
 export type UpdateTransactionInput = Partial<Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>>
@@ -50,12 +51,40 @@ export async function createTransaction(input: CreateTransactionInput): Promise<
     createdAt: now,
     updatedAt: now,
   }
+
+  if (navigator.onLine) {
+    try {
+      await retry(() => api.createTransaction({
+        type: input.type,
+        amount: input.amount,
+        categoryId: input.categoryId,
+        occurredAt: input.occurredAt,
+        note: input.note,
+      }), 2)
+    } catch {
+      await db.transactions.add(transaction)
+      syncManager.addToQueue({
+        entityType: 'transaction', entityId: transaction.id, operation: 'CREATE',
+        payload: transaction, timestamp: now,
+      })
+      return transaction
+    }
+  }
+
   await db.transactions.add(transaction)
-  syncManager.addToQueue({
-    entityType: 'transaction', entityId: transaction.id, operation: 'CREATE',
-    payload: transaction, timestamp: now,
-  })
   return transaction
+}
+
+async function retry<T>(fn: () => Promise<T>, attempts: number): Promise<T> {
+  for (let i = 0; i <= attempts; i++) {
+    try {
+      return await fn()
+    } catch {
+      if (i === attempts) throw new Error('All retries failed')
+      await new Promise((r) => setTimeout(r, 1000 * (i + 1)))
+    }
+  }
+  throw new Error('All retries failed')
 }
 
 export async function updateTransaction(
