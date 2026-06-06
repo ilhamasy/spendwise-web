@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { api, setAuthToken } from '@/lib/api'
-import { db } from '@/lib/db'
 import { syncManager } from '@/lib/sync-manager'
 
 interface AuthUser {
@@ -24,7 +23,7 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   login: async () => {},
   register: async () => {},
-  logout: () => {},
+  logout: async () => {},
 })
 
 interface StoredUser {
@@ -152,12 +151,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     clearSession()
     localStorage.removeItem('spendwise-profile')
     localStorage.removeItem('spendwise-lastSync')
-    db.transactions.clear()
-    db.categories.clear()
-    db.savingGoals.clear()
-    db.goalContributions.clear()
-    db.budgets.clear()
-    db.syncQueue.clear()
     setUser(null)
   }, [])
 
