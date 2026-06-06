@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const users = getUsers()
         const found = users.find((u) => u.id === sessionId)
         if (found) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
+           
           setUser({ id: found.id, name: found.name, email: found.email })
         }
       }

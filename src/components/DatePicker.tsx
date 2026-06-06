@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 interface DatePickerProps {
   value: string
   onChange: (date: string) => void
+   
   minDate?: string
 }
 
@@ -15,7 +16,7 @@ const DAY_HEADERS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 function getDaysInMonth(year: number, month: number) { return new Date(year, month + 1, 0).getDate() }
 function getStartDay(year: number, month: number) { return new Date(year, month, 1).getDay() }
 
-export default function DatePicker({ value, onChange, minDate }: DatePickerProps) {
+export default function DatePicker({ value, onChange }: DatePickerProps) {
   const today = new Date()
   const initialDate = value ? new Date(value) : today
   const [month, setMonth] = useState(initialDate.getMonth())

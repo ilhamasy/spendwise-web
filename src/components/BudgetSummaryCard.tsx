@@ -31,6 +31,7 @@ export function BudgetSummaryCard() {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData()
   }, [loadData, refreshKey])
   useEffect(() => {
