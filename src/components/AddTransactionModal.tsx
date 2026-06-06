@@ -131,7 +131,6 @@ export default function AddTransactionModal({ open, onClose, onSuccess }: Props)
       onClose()
     } catch {
       setError('Failed to save transaction')
-      setToast({ message: 'Failed to save transaction', type: 'error' })
       setIsSubmitting(false)
     }
   }
