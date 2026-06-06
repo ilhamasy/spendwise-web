@@ -32,8 +32,7 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
     }
     const goOnline = () => {
       setIsOffline(false)
-      syncManager.pullFromServer()
-      syncManager.processQueue()
+      syncManager.processQueue().then(() => syncManager.pullFromServer())
     }
     window.addEventListener('offline', goOffline)
     window.addEventListener('online', goOnline)

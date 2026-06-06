@@ -19,13 +19,12 @@ export function useSync() {
     syncManager.getPendingCount().then(setPendingCount)
 
     if (navigator.onLine) {
-      syncManager.pullFromServer().then(() => syncManager.processQueue())
+      syncManager.processQueue().then(() => syncManager.pullFromServer())
     }
 
     const interval = setInterval(() => {
       if (navigator.onLine) {
-        syncManager.pullFromServer()
-        syncManager.processQueue()
+        syncManager.processQueue().then(() => syncManager.pullFromServer())
       }
     }, 30000)
 
