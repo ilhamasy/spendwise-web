@@ -25,20 +25,22 @@ export default function RecentTransactionsTable() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loaded, setLoaded] = useState(false)
-  const [tick, setTick] = useState(0)
+
+  async function loadTransactions() {
+    const txs = await getRecentTransactions(3)
+    const catPromises = txs.map((tx) => getCategoryById(tx.categoryId))
+    const cats = (await Promise.all(catPromises)).filter(Boolean) as Category[]
+    setTransactions(txs)
+    setCategories(cats)
+    setLoaded(true)
+  }
 
   useEffect(() => {
-    getRecentTransactions(3).then(async (txs) => {
-      const catPromises = txs.map((tx) => getCategoryById(tx.categoryId))
-      const cats = (await Promise.all(catPromises)).filter(Boolean) as Category[]
-      setTransactions(txs)
-      setCategories(cats)
-      setLoaded(true)
-    })
-  }, [tick])
+    loadTransactions()
+  }, [])
 
   useEffect(() => {
-    const handler = () => setTick((t) => t + 1)
+    const handler = () => loadTransactions()
     window.addEventListener('transaction-updated', handler)
     return () => window.removeEventListener('transaction-updated', handler)
   }, [])
