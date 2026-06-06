@@ -103,7 +103,7 @@ async function deduplicateGoals() {
 }
 
 async function deduplicateBudgets() {
-  const all = await db.budgets.orderBy('createdAt').toArray()
+  const all = await db.budgets.toArray()
   const seen = new Set<string>()
   const toDelete: string[] = []
   for (const b of all) {
