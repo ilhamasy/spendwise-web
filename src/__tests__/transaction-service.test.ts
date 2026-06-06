@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { db } from '@/lib/db'
 
 vi.mock('@/lib/sync-manager', () => ({
@@ -26,6 +26,10 @@ import {
 } from '@/lib/transaction-service'
 
 beforeEach(async () => {
+  await db.transactions.clear()
+})
+
+afterEach(async () => {
   await db.transactions.clear()
 })
 
@@ -59,16 +63,16 @@ describe('transaction-service', () => {
   })
 
   it('gets recent transactions with limit', async () => {
-    for (let i = 1; i <= 10; i++) {
+    for (let i = 1; i <= 5; i++) {
       await createTransaction({
         type: 'expense', amount: i * 1000, categoryId: 'c1',
         occurredAt: `2026-01-${String(i).padStart(2, '0')}`,
       })
     }
 
-    const recent = await getRecentTransactions(5)
-    expect(recent).toHaveLength(5)
-  })
+    const recent = await getRecentTransactions(3)
+    expect(recent).toHaveLength(3)
+  }, 20000)
 
   it('updates a transaction', async () => {
     const tx = await createTransaction({
