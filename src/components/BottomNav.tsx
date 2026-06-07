@@ -39,6 +39,7 @@ export default function BottomNav() {
                 animate={{ scale: isActive ? 1.1 : 1 }}
                 transition={{ type: 'spring', stiffness: 380, damping: 30 }}
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={item.icon.src} alt={item.label} className="h-5 w-5" />
               </motion.div>
               <span className="text-[10px] font-semibold">

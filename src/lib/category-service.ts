@@ -26,20 +26,19 @@ export async function seedDefaultCategories(): Promise<void> {
   const count = await db.categories.count()
   if (count > 0) return
 
-  if (navigator.onLine) return
-
   const categories: Category[] = [
-    ...DEFAULT_INCOME_CATEGORIES.map((c) => ({ ...c, id: generateId() })),
-    ...DEFAULT_EXPENSE_CATEGORIES.map((c) => ({ ...c, id: generateId() })),
+    ...DEFAULT_INCOME_CATEGORIES.map((c) => ({ ...c, id: generateId(), status: 'active' as const })),
+    ...DEFAULT_EXPENSE_CATEGORIES.map((c) => ({ ...c, id: generateId(), status: 'active' as const })),
   ]
   await db.categories.bulkAdd(categories)
 }
 
 export async function getAllCategories(type?: 'income' | 'expense'): Promise<Category[]> {
+  let collection = db.categories.toCollection()
   if (type) {
-    return db.categories.where('type').equals(type).toArray()
+    collection = db.categories.where('type').equals(type)
   }
-  return db.categories.toArray()
+  return (await collection.toArray()).filter((c) => c.status !== 'archived')
 }
 
 export async function getCategoryById(id: string): Promise<Category | undefined> {
@@ -49,13 +48,20 @@ export async function getCategoryById(id: string): Promise<Category | undefined>
 export async function createCategory(
   input: Omit<Category, 'id' | 'isDefault'>,
 ): Promise<Category> {
+  const existing = await db.categories
+    .where('name').equals(input.name)
+    .and((c) => c.type === input.type)
+    .first()
+  if (existing) return existing
+
   const category: Category = {
     id: generateId(),
     ...input,
     isDefault: false,
+    status: 'active',
   }
   await db.categories.add(category)
-  syncManager.addToQueue({
+  await syncManager.addToQueue({
     entityType: 'category', entityId: category.id, operation: 'CREATE',
     payload: category, timestamp: new Date().toISOString(),
   })
@@ -71,7 +77,7 @@ export async function updateCategory(
 
   const updated: Category = { ...existing, ...input }
   await db.categories.put(updated)
-  syncManager.addToQueue({
+  await syncManager.addToQueue({
     entityType: 'category', entityId: id, operation: 'UPDATE',
     payload: updated, timestamp: new Date().toISOString(),
   })
@@ -82,10 +88,13 @@ export async function deleteCategory(id: string): Promise<boolean> {
   const existing = await db.categories.get(id)
   if (!existing) return false
   if (existing.isDefault) return false
-  await db.categories.delete(id)
-  syncManager.addToQueue({
-    entityType: 'category', entityId: id, operation: 'DELETE',
-    payload: { id }, timestamp: new Date().toISOString(),
+
+  existing.status = 'archived'
+  await db.categories.put(existing)
+  await syncManager.addToQueue({
+    entityType: 'category', entityId: id, operation: 'UPDATE',
+    payload: existing, timestamp: new Date().toISOString(),
   })
+
   return true
 }

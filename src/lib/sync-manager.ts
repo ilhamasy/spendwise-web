@@ -1,29 +1,45 @@
 import { db } from '@/lib/db'
 import { api } from '@/lib/api'
-import type { SyncQueueItem, DataSyncResponse, SyncStatus } from '@/lib/sync-types'
+import type { SyncQueueItem, DataSyncResponse, SyncStatus, SyncMetadata } from '@/lib/sync-types'
 
 type StatusListener = (status: SyncStatus) => void
 
-export class SyncManager {
+const SYNC_META_KEY = 'spendwise-sync-meta'
+
+class SyncManager {
   private syncInProgress = false
   private maxRetries = 3
   private listeners: Array<StatusListener> = []
   private status: SyncStatus = 'idle'
+  private intervalId: ReturnType<typeof setInterval> | null = null
 
-  constructor() {
-    this.init()
-  }
-
-  private init() {
+  init() {
     if (typeof window === 'undefined') return
     window.addEventListener('online', () => this.onOnline())
+    this.intervalId = setInterval(() => this.tick(), 30000)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') this.tick()
+    })
+  }
+
+  destroy() {
+    if (this.intervalId) clearInterval(this.intervalId)
+    this.listeners = []
+  }
+
+  private getMeta(): SyncMetadata {
+    const raw = localStorage.getItem(SYNC_META_KEY)
+    return raw ? JSON.parse(raw) : { lastSyncedAt: '', lastPulledAt: '' }
+  }
+
+  private setMeta(meta: Partial<SyncMetadata>) {
+    const current = this.getMeta()
+    localStorage.setItem(SYNC_META_KEY, JSON.stringify({ ...current, ...meta }))
   }
 
   onStatusChange(listener: StatusListener) {
     this.listeners.push(listener)
-    return () => {
-      this.listeners = this.listeners.filter((l) => l !== listener)
-    }
+    return () => { this.listeners = this.listeners.filter((l) => l !== listener) }
   }
 
   private setStatus(status: SyncStatus) {
@@ -37,40 +53,22 @@ export class SyncManager {
   }
 
   async addToQueue(item: Omit<SyncQueueItem, 'id' | 'retries' | 'createdAt'>) {
-    await db.syncQueue.add({
-      ...item,
-      retries: 0,
-      createdAt: new Date().toISOString(),
-    })
+    await db.syncQueue.add({ ...item, retries: 0, createdAt: new Date().toISOString() })
   }
 
   private async onOnline() {
     this.setStatus('idle')
-    await this.pullFromServer()
     await this.processQueue()
+    await this.pullChanges()
   }
 
-  async pullFromServer() {
+  private async tick() {
     if (!navigator.onLine || this.syncInProgress) return
-    this.syncInProgress = true
-    this.setStatus('syncing')
-
-    try {
-      const lastSyncAt = localStorage.getItem('spendwise-lastSync') || ''
-      const changes: unknown[] = []
-
-      const response = await api.sync(lastSyncAt, changes)
-      await this.mergeServerChanges(response)
-      localStorage.setItem('spendwise-lastSync', response.newSyncTimestamp)
-    } catch {
-      // Silently fail, will retry later
-    } finally {
-      this.syncInProgress = false
-      this.setStatus('idle')
-    }
+    await this.processQueue()
+    await this.pullChanges()
   }
 
-  async processQueue() {
+  async processQueue(): Promise<void> {
     if (!navigator.onLine || this.syncInProgress) return
     this.syncInProgress = true
     this.setStatus('syncing')
@@ -83,7 +81,6 @@ export class SyncManager {
         return
       }
 
-      const lastSyncAt = localStorage.getItem('spendwise-lastSync') || ''
       const changes = items.map((item) => ({
         entityType: item.entityType,
         entityId: item.entityId,
@@ -92,63 +89,60 @@ export class SyncManager {
         timestamp: item.timestamp,
       }))
 
-      const response = await api.sync(lastSyncAt, changes)
-
-      const succeededIds = new Set<number>()
-      for (const conflict of response.conflicts) {
-        const match = items.find(
-          (i) => i.entityType === conflict.entityType && i.entityId === conflict.entityId
-        )
-        if (match && match.id != null) {
-          if (conflict.resolution === 'server_wins') {
-            succeededIds.add(match.id)
-          } else {
-            succeededIds.add(match.id)
-          }
-        }
-      }
+      const meta = this.getMeta()
+      await api.sync(meta.lastSyncedAt, changes)
+      this.setMeta({ lastSyncedAt: new Date().toISOString() })
 
       for (const item of items) {
-        if (item.retries >= this.maxRetries) {
-          if (item.id != null) await db.syncQueue.delete(item.id)
-          continue
-        }
-        if (succeededIds.has(item.id!) || !conflictItems(items).includes(item.id!)) {
-          if (item.id != null) await db.syncQueue.delete(item.id)
-        } else {
-          if (item.id != null) {
-            await db.syncQueue.update(item.id, { retries: item.retries + 1 })
-          }
-        }
+        if (item.id != null) await db.syncQueue.delete(item.id)
       }
-
-      await this.mergeServerChanges(response)
-      localStorage.setItem('spendwise-lastSync', response.newSyncTimestamp)
     } catch {
-      let hasExhausted = false
       for (const item of await db.syncQueue.toArray()) {
         if (item.retries >= this.maxRetries) {
-          hasExhausted = true
           if (item.id != null) await db.syncQueue.delete(item.id)
         } else if (item.id != null) {
           await db.syncQueue.update(item.id, { retries: item.retries + 1 })
         }
       }
-      if (hasExhausted) {
-        this.setStatus('error')
-      }
     } finally {
       this.syncInProgress = false
-      if (this.status !== 'error') this.setStatus('idle')
+      this.setStatus('idle')
+    }
+  }
+
+  async pullChanges(): Promise<void> {
+    if (!navigator.onLine || this.syncInProgress) return
+    this.syncInProgress = true
+    this.setStatus('syncing')
+
+    try {
+      const meta = this.getMeta()
+      const changes: unknown[] = []
+      const response = await api.sync(meta.lastPulledAt, changes)
+
+      await this.mergeServerChanges(response)
+      this.setMeta({ lastPulledAt: response.newSyncTimestamp })
+    } catch {
+      // Silently fail
+    } finally {
+      this.syncInProgress = false
+      this.setStatus('idle')
     }
   }
 
   private async mergeServerChanges(response: DataSyncResponse) {
+    let hasTxChanges = false
     for (const change of response.serverChanges) {
       try {
+        if ((change as { isDeleted?: boolean }).isDeleted) {
+          await this.handleDeleted(change)
+          continue
+        }
+
         switch (change.entityType) {
           case 'transaction':
             await this.upsert('transactions', change)
+            hasTxChanges = true
             break
           case 'category':
             await this.upsert('categories', change)
@@ -161,30 +155,79 @@ export class SyncManager {
             break
         }
       } catch {
-        // Skip failed merges
+        // Skip
       }
+    }
+    if (hasTxChanges) {
+      window.dispatchEvent(new Event('transaction-updated'))
     }
   }
 
+  private async handleDeleted(change: { entityType: string; entityId: string }) {
+    const tableMap: Record<string, string> = {
+      transaction: 'transactions',
+      category: 'categories',
+      goal: 'savingGoals',
+      budget: 'budgets',
+    }
+    const table = tableMap[change.entityType]
+    if (!table) return
+
+    const tableRef = (db as unknown as Record<string, { get: (id: string) => Promise<unknown>; delete: (id: string) => Promise<void>; put: (data: unknown) => Promise<void> }>)[table]
+    if (!tableRef) return
+
+    // Never hard-delete categories — always archive for transaction references
+    if (change.entityType === 'category') {
+      const existing = await tableRef.get(change.entityId).catch(() => null)
+      const data = (existing || {}) as Record<string, unknown>
+      data.id = change.entityId
+      data.status = 'archived'
+      data.isDeleted = true
+      await tableRef.put(data)
+      return
+    }
+
+    await tableRef.delete(change.entityId).catch(() => {})
+  }
+
   private async upsert(table: string, change: { entityId: string; data: unknown }) {
-    const tableRef = (db as unknown as Record<string, { get: (id: string) => Promise<unknown>; put: (data: unknown) => Promise<unknown> }>)[table]
+    const tableRef = (db as unknown as Record<string, { get: (id: string) => Promise<unknown>; put: (data: unknown) => Promise<void>; toArray?: () => Promise<unknown[]> }>)[table]
     if (!tableRef) return
 
     const existing = await tableRef.get(change.entityId).catch(() => null)
+    const changeData = change.data as Record<string, unknown>
+
     if (existing) {
-      await tableRef.put({ ...(existing as object), ...(change.data as object) })
+      const existingData = existing as Record<string, unknown>
+      const serverTime = new Date((changeData.updatedAt as string) || '').getTime()
+      const localTime = new Date((existingData.updatedAt as string) || '0').getTime()
+
+      if (serverTime > localTime || !existingData.updatedAt) {
+        const merged = { ...existingData, ...changeData }
+        if (table === 'categories' && existingData.status === 'archived' && !changeData.status) {
+          merged.status = 'archived'
+        }
+        await tableRef.put(merged)
+      }
     } else {
-      await tableRef.put(change.data)
+      if (table === 'transactions' && tableRef.toArray) {
+        const all = await tableRef.toArray()
+        const matches = (all as Record<string, unknown>[]).filter((t: Record<string, unknown>) =>
+          t.type === changeData.type &&
+          t.amount === changeData.amount &&
+          t.categoryId === changeData.categoryId &&
+          t.occurredAt === changeData.occurredAt &&
+          (t.note || '') === (changeData.note || '')
+        )
+        if (matches.length > 0) return
+      }
+      await tableRef.put(changeData)
     }
   }
 
   async getPendingCount(): Promise<number> {
     return db.syncQueue.count()
   }
-}
-
-function conflictItems(items: SyncQueueItem[]): number[] {
-  return items.filter((i) => i.retries >= 3).map((i) => i.id!)
 }
 
 export const syncManager = new SyncManager()

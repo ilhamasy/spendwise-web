@@ -1,5 +1,14 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { db } from '@/lib/db'
+
+vi.mock('@/lib/sync-manager', () => ({
+  syncManager: {
+    addToQueue: () => Promise.resolve(),
+    processQueue: () => Promise.resolve(),
+    pullChanges: () => Promise.resolve(),
+  },
+}))
+
 import {
   getAllCategories,
   seedDefaultCategories,

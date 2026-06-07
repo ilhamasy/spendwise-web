@@ -23,6 +23,7 @@ export interface DataSyncResponse {
     entityId: string
     data: unknown
     timestamp: string
+    isDeleted?: boolean
   }>
   newSyncTimestamp: string
   conflicts: Array<{
@@ -35,3 +36,8 @@ export interface DataSyncResponse {
 }
 
 export type SyncStatus = 'idle' | 'syncing' | 'error' | 'offline'
+
+export interface SyncMetadata {
+  lastSyncedAt: string
+  lastPulledAt: string
+}

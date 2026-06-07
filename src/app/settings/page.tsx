@@ -11,7 +11,7 @@ import ConfirmDialog from '@/components/ConfirmDialog'
 
 export default function SettingsPage() {
   const { user, logout } = useAuth()
-  const { theme, resolved, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
   const router = useRouter()
 
   const [displayName, setDisplayName] = useState(user?.name || '')

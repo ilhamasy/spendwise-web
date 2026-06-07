@@ -9,6 +9,8 @@ export function useSync() {
   const [pendingCount, setPendingCount] = useState(0)
 
   useEffect(() => {
+    syncManager.init()
+
     const unsubscribe = syncManager.onStatusChange((s) => {
       setStatus(s)
       if (s === 'idle' || s === 'error') {
@@ -19,19 +21,11 @@ export function useSync() {
     syncManager.getPendingCount().then(setPendingCount)
 
     if (navigator.onLine) {
-      syncManager.pullFromServer().then(() => syncManager.processQueue())
+      syncManager.processQueue().then(() => syncManager.pullChanges())
     }
-
-    const interval = setInterval(() => {
-      if (navigator.onLine) {
-        syncManager.pullFromServer()
-        syncManager.processQueue()
-      }
-    }, 30000)
 
     return () => {
       unsubscribe()
-      clearInterval(interval)
     }
   }, [])
 

@@ -17,6 +17,7 @@ export default function KpiCard({ title, value, change, isPositive, icon }: KpiC
     <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-light">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={icon.src} alt={title} className="h-10 w-10" />
         </div>
         <span

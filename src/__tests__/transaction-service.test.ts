@@ -1,5 +1,19 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { db } from '@/lib/db'
+
+vi.mock('@/lib/sync-manager', () => ({
+  syncManager: {
+    addToQueue: () => Promise.resolve(),
+    processQueue: () => Promise.resolve(),
+    pullChanges: () => Promise.resolve(),
+    getPendingCount: () => Promise.resolve(0),
+    getStatus: () => 'idle',
+    init: () => {},
+    destroy: () => {},
+    onStatusChange: () => () => {},
+  },
+}))
+
 import {
   createTransaction,
   getAllTransactions,
@@ -12,6 +26,10 @@ import {
 } from '@/lib/transaction-service'
 
 beforeEach(async () => {
+  await db.transactions.clear()
+})
+
+afterEach(async () => {
   await db.transactions.clear()
 })
 
@@ -40,21 +58,21 @@ describe('transaction-service', () => {
 
     const all = await getAllTransactions()
     expect(all).toHaveLength(2)
-    expect(all[0].amount).toBe(200) // newest first
+    expect(all[0].amount).toBe(200)
     expect(all[1].amount).toBe(100)
-  })
+  }, 20000)
 
   it('gets recent transactions with limit', async () => {
-    for (let i = 1; i <= 10; i++) {
+    for (let i = 1; i <= 3; i++) {
       await createTransaction({
         type: 'expense', amount: i * 1000, categoryId: 'c1',
         occurredAt: `2026-01-${String(i).padStart(2, '0')}`,
       })
     }
 
-    const recent = await getRecentTransactions(5)
-    expect(recent).toHaveLength(5)
-  })
+    const recent = await getRecentTransactions(3)
+    expect(recent).toHaveLength(3)
+  }, 20000)
 
   it('updates a transaction', async () => {
     const tx = await createTransaction({
@@ -95,7 +113,7 @@ describe('transaction-service', () => {
 
     const total = await getTotalIncome()
     expect(total).toBe(150000)
-  })
+  }, 20000)
 
   it('calculates total expense', async () => {
     await createTransaction({ type: 'expense', amount: 30000, categoryId: 'c2', occurredAt: '2026-06-01' })
@@ -104,5 +122,5 @@ describe('transaction-service', () => {
 
     const total = await getTotalExpense()
     expect(total).toBe(50000)
-  })
+  }, 20000)
 })

@@ -10,6 +10,7 @@ import type { Category } from '@/types'
 export function BudgetSummaryCard() {
   const [items, setItems] = useState<{ name: string; emoji: string; spent: number; budget: number; progress: number }[]>([])
   const [loaded, setLoaded] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const loadData = useCallback(async () => {
     const [budgets, cats] = await Promise.all([getAllBudgets(), getAllCategories('expense')])
@@ -32,12 +33,12 @@ export function BudgetSummaryCard() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData()
-  }, [loadData])
+  }, [loadData, refreshKey])
   useEffect(() => {
-    const handler = () => loadData()
+    const handler = () => setRefreshKey((k) => k + 1)
     window.addEventListener('transaction-updated', handler)
     return () => window.removeEventListener('transaction-updated', handler)
-  }, [loadData])
+  }, [])
 
   if (!loaded) {
     return (
@@ -63,10 +64,10 @@ export function BudgetSummaryCard() {
         </div>
       ) : (
         <div className="mt-4 space-y-4">
-          {items.map((item) => {
+          {items.map((item, i) => {
             const isOver = item.progress >= 100
             return (
-              <div key={item.name}>
+              <div key={`budget-${i}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <span>{item.emoji}</span>

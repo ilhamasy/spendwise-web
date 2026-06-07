@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { api, setAuthToken } from '@/lib/api'
-import { db } from '@/lib/db'
+import { syncManager } from '@/lib/sync-manager'
 
 interface AuthUser {
   id: string
@@ -15,7 +15,7 @@ interface AuthContextType {
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
   register: (name: string, email: string, password: string) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -23,7 +23,7 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   login: async () => {},
   register: async () => {},
-  logout: () => {},
+  logout: async () => {},
 })
 
 interface StoredUser {
@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const users = getUsers()
         const found = users.find((u) => u.id === sessionId)
         if (found) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
+           
           setUser({ id: found.id, name: found.name, email: found.email })
         }
       }
@@ -139,16 +139,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     saveUsers([...users, newUser])
   }, [])
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    let tries = 0
+    while (navigator.onLine && tries < 3) {
+      const pending = await syncManager.getPendingCount()
+      if (pending === 0) break
+      await syncManager.processQueue()
+      tries++
+      if (tries < 3) await new Promise((r) => setTimeout(r, 2000))
+    }
     clearSession()
     localStorage.removeItem('spendwise-profile')
-    localStorage.removeItem('spendwise-lastSync')
-    db.transactions.clear()
-    db.categories.clear()
-    db.savingGoals.clear()
-    db.goalContributions.clear()
-    db.budgets.clear()
-    db.syncQueue.clear()
+    localStorage.removeItem('spendwise-sync-meta')
+    syncManager.destroy()
     setUser(null)
   }, [])
 

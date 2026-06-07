@@ -60,6 +60,7 @@ export default function BudgetCard({ year, period, customStart, customEnd }: Pro
 
     setData(top.map((v) => ({ name: v.name, value: v.total, color: v.color })))
     setTotal(top.reduce((s, v) => s + v.total, 0))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [period, customStart, customEnd, year])
 
   // eslint-disable-next-line react-hooks/set-state-in-effect

@@ -2,6 +2,7 @@ import { db } from './db'
 import type { SavingGoal, GoalContribution } from '@/types'
 import { generateId } from './utils'
 import { syncManager } from './sync-manager'
+import { api } from './api'
 
 export type CreateGoalInput = Omit<SavingGoal, 'id' | 'currentSaved' | 'createdAt' | 'updatedAt'>
 export type UpdateGoalInput = Partial<
@@ -29,7 +30,7 @@ export async function createGoal(input: CreateGoalInput): Promise<SavingGoal> {
     updatedAt: now,
   }
   await db.savingGoals.add(goal)
-  syncManager.addToQueue({
+  await syncManager.addToQueue({
     entityType: 'goal', entityId: goal.id, operation: 'CREATE',
     payload: goal, timestamp: now,
   })
@@ -49,7 +50,7 @@ export async function updateGoal(
     updatedAt: new Date().toISOString(),
   }
   await db.savingGoals.put(updated)
-  syncManager.addToQueue({
+  await syncManager.addToQueue({
     entityType: 'goal', entityId: id, operation: 'UPDATE',
     payload: updated, timestamp: updated.updatedAt,
   })
@@ -69,7 +70,7 @@ export async function deleteGoal(id: string): Promise<boolean> {
   if (!existing) return false
   await db.savingGoals.delete(id)
   await db.goalContributions.where('goalId').equals(id).delete()
-  syncManager.addToQueue({
+  await syncManager.addToQueue({
     entityType: 'goal', entityId: id, operation: 'DELETE',
     payload: { id }, timestamp: new Date().toISOString(),
   })
@@ -94,11 +95,30 @@ export async function addContribution(
     date: date || now.split('T')[0],
     createdAt: now,
   }
-  await db.goalContributions.add(contribution)
 
   goal.currentSaved += amount
   goal.updatedAt = now
+
+  let syncedToServer = false
+  if (navigator.onLine) {
+    try {
+      await api.addContribution(goalId, { amount, note, date })
+      await api.updateGoal(goalId, { currentSaved: goal.currentSaved })
+      syncedToServer = true
+    } catch {
+      // API failed, use local + queue for later sync
+    }
+  }
+
+  await db.goalContributions.add(contribution)
   await db.savingGoals.put(goal)
+
+  if (!syncedToServer) {
+    await syncManager.addToQueue({
+      entityType: 'goal', entityId: goal.id, operation: 'UPDATE',
+      payload: goal, timestamp: now,
+    })
+  }
 
   return { contribution, goal }
 }

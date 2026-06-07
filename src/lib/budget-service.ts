@@ -13,7 +13,7 @@ export async function createBudget(input: CreateBudgetInput): Promise<Budget> {
   const now = new Date().toISOString()
   const budget: Budget = { id: generateId(), ...input, createdAt: now, updatedAt: now }
   await db.budgets.add(budget)
-  syncManager.addToQueue({
+  await syncManager.addToQueue({
     entityType: 'budget', entityId: budget.id, operation: 'CREATE',
     payload: budget, timestamp: now,
   })
@@ -25,7 +25,7 @@ export async function updateBudget(id: string, input: Partial<CreateBudgetInput>
   if (!existing) return undefined
   const updated: Budget = { ...existing, ...input, updatedAt: new Date().toISOString() }
   await db.budgets.put(updated)
-  syncManager.addToQueue({
+  await syncManager.addToQueue({
     entityType: 'budget', entityId: id, operation: 'UPDATE',
     payload: updated, timestamp: updated.updatedAt,
   })
@@ -36,7 +36,7 @@ export async function deleteBudget(id: string): Promise<boolean> {
   const existing = await db.budgets.get(id)
   if (!existing) return false
   await db.budgets.delete(id)
-  syncManager.addToQueue({
+  await syncManager.addToQueue({
     entityType: 'budget', entityId: id, operation: 'DELETE',
     payload: { id }, timestamp: new Date().toISOString(),
   })

@@ -21,7 +21,7 @@ function CustomTooltip({ active, payload, label }: {
     <div className="rounded-xl border border-border bg-card px-3 py-2 shadow-lg">
       <p className="text-xs font-semibold text-foreground mb-1.5">{label}</p>
       {payload.map((entry) => (
-        <div key={entry.name} className="flex items-center gap-2 text-[11px]">
+        <div key={`flow-${entry.name}`} className="flex items-center gap-2 text-[11px]">
           <span
             className="inline-block h-2.5 w-2.5 rounded-full"
             style={{ backgroundColor: entry.name === 'income' ? '#22c55e' : '#ef4444' }}

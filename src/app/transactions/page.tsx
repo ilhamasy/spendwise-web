@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Transaction, Category } from '@/types'
 import { db } from '@/lib/db'
-import { getAllCategories } from '@/lib/category-service'
+import { getCategoryById } from '@/lib/category-service'
 import { deleteTransaction } from '@/lib/transaction-service'
 import { formatCurrency } from '@/lib/currency'
 import ConfirmDialog from '@/components/ConfirmDialog'
@@ -18,7 +18,7 @@ export default function TransactionsPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loaded, setLoaded] = useState(false)
 
-  const [filterType, setFilterType] = useState<FilterPeriod>('month')
+  const [filterType, setFilterType] = useState<FilterPeriod>('year')
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
   const [minDate, setMinDate] = useState('2024-01-01')
@@ -36,10 +36,10 @@ export default function TransactionsPage() {
   }, [])
 
   const loadData = useCallback(async () => {
-    const [allTx, cats] = await Promise.all([
-      db.transactions.orderBy('occurredAt').reverse().toArray(),
-      getAllCategories(),
-    ])
+    const allTx = await db.transactions.orderBy('occurredAt').reverse().toArray()
+
+    const uniqueCatIds = [...new Set(allTx.map((t) => t.categoryId))]
+    const cats = (await Promise.all(uniqueCatIds.map((id) => getCategoryById(id)))).filter(Boolean) as Category[]
     setCategories(cats)
     setLoaded(true)
 
@@ -56,8 +56,13 @@ export default function TransactionsPage() {
       filtered.sort((a, b) => sortDir === 'desc' ? b.amount - a.amount : a.amount - b.amount)
     } else {
       filtered.sort((a, b) => {
-        const cmp = a.occurredAt.localeCompare(b.occurredAt) || a.createdAt.localeCompare(b.createdAt)
-        return sortDir === 'desc' ? -cmp : cmp
+        if (a.occurredAt !== b.occurredAt) {
+          return sortDir === 'desc'
+            ? b.occurredAt.localeCompare(a.occurredAt)
+            : a.occurredAt.localeCompare(b.occurredAt)
+        }
+        const timeDiff = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        return sortDir === 'desc' ? timeDiff : -timeDiff
       })
     }
 

@@ -1,24 +1,24 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { getRecentTransactions } from '@/lib/transaction-service'
-import { getAllCategories } from '@/lib/category-service'
+import { getCategoryById } from '@/lib/category-service'
 import { formatCurrency } from '@/lib/currency'
 import type { Transaction, Category } from '@/types'
 
 function relativeDateTime(dateStr: string, createdAt: string): string {
-  const d = new Date(dateStr)
+  const [y, m, d] = dateStr.split('-').map(Number)
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const target = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  const target = new Date(y, m - 1, d)
   const diff = (today.getTime() - target.getTime()) / 86400000
 
   const time = new Date(createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 
   if (diff === 0) return `Today ${time}`
   if (diff === 1) return `Yesterday ${time}`
-  return `${d.toLocaleDateString('en-GB')} ${time}`
+  return `${d.toString().padStart(2, '0')}/${m.toString().padStart(2, '0')}/${y} ${time}`
 }
 
 export default function RecentTransactionsTable() {
@@ -26,23 +26,25 @@ export default function RecentTransactionsTable() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loaded, setLoaded] = useState(false)
 
-  const loadData = useCallback(async () => {
-    const [txs, cats] = await Promise.all([getRecentTransactions(3), getAllCategories()])
+  async function loadTransactions() {
+    const txs = await getRecentTransactions(3)
+    const catPromises = txs.map((tx) => getCategoryById(tx.categoryId))
+    const cats = (await Promise.all(catPromises)).filter(Boolean) as Category[]
     setTransactions(txs)
     setCategories(cats)
     setLoaded(true)
-  }, [])
+  }
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadData()
-  }, [loadData])
+    loadTransactions()
+  }, [])
 
   useEffect(() => {
-    const handler = () => loadData()
+    const handler = () => loadTransactions()
     window.addEventListener('transaction-updated', handler)
     return () => window.removeEventListener('transaction-updated', handler)
-  }, [loadData])
+  }, [])
 
   const getCat = (id: string) => categories.find((c) => c.id === id)
 

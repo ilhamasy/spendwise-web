@@ -35,5 +35,14 @@ db.version(3).stores({
   syncQueue: '++id, entityType, entityId, operation, createdAt, retries',
 })
 
+db.version(4).stores({
+  transactions: 'id, type, categoryId, occurredAt, createdAt',
+  categories: 'id, type, name',
+  savingGoals: 'id, status, createdAt',
+  goalContributions: 'id, goalId, date',
+  budgets: 'id, categoryId, period',
+  syncQueue: '++id, entityType, entityId, operation, createdAt, retries',
+})
+
 export { db }
 export type SpendWiseDB = typeof db
