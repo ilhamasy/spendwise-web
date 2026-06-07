@@ -163,7 +163,7 @@ class SyncManager {
     }
   }
 
-  private async handleDeleted(change: { entityType: string; entityId: string }) {
+  private async handleDeleted(change: { entityType: string; entityId: string; data?: unknown }) {
     const tableMap: Record<string, string> = {
       transaction: 'transactions',
       category: 'categories',
@@ -179,10 +179,11 @@ class SyncManager {
     // Never hard-delete categories — always archive for transaction references
     if (change.entityType === 'category') {
       const existing = await tableRef.get(change.entityId).catch(() => null)
-      const data = (existing || {}) as Record<string, unknown>
-      data.id = change.entityId
+      const changeData = change.data as Record<string, unknown>
+      const data = existing ? { ...(existing as Record<string, unknown>), ...changeData } : { ...changeData }
       data.status = 'archived'
       data.isDeleted = true
+      data.id = change.entityId
       await tableRef.put(data)
       return
     }
