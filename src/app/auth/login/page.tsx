@@ -4,12 +4,15 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
+import { useTheme } from '@/lib/theme'
 import AuthBackground from '@/components/AuthBackground'
 import Loader from '@/components/Loader'
+import { Sun, Moon } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
   const { login } = useAuth()
+  const { resolved, setTheme } = useTheme()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -56,6 +59,13 @@ export default function LoginPage() {
 
   return (
     <AuthBackground>
+      <button
+        onClick={() => setTheme(resolved === 'dark' ? 'light' : 'dark')}
+        className="fixed right-4 top-4 z-20 rounded-full border border-border bg-card/60 p-2 backdrop-blur-sm transition-colors hover:bg-card"
+        aria-label="Toggle theme"
+      >
+        {resolved === 'dark' ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-600" />}
+      </button>
       <div className="flex min-h-dvh items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center">
