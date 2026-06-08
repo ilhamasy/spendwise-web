@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
+import AuthBackground from '@/components/AuthBackground'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -53,7 +54,8 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center px-4">
+    <AuthBackground>
+      <div className="flex min-h-dvh items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">SpendWise</h1>
@@ -191,6 +193,7 @@ export default function RegisterPage() {
           </Link>
         </p>
       </div>
-    </div>
+      </div>
+    </AuthBackground>
   )
 }
