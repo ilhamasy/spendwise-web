@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
 import AuthBackground from '@/components/AuthBackground'
+import owlLogo from '@/assets/owl.png'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -58,7 +59,11 @@ export default function LoginPage() {
       <div className="flex min-h-dvh items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">SpendWise</h1>
+          <img src={owlLogo.src} alt="SpendWise" className="mx-auto h-20 w-20" />
+          <h1 className="mt-4 text-3xl font-bold">
+            <span className="text-[#0A3622]">Spend</span>
+            <span className="text-[#2ECC71]">Wise</span>
+          </h1>
           <p className="mt-2 text-muted-foreground">Sign in to your account</p>
         </div>
 
@@ -78,7 +83,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-[#0A3622] focus:outline-none focus:ring-1 focus:ring-[#0A3622]/30"
               placeholder="you@example.com"
               autoComplete="email"
               required
@@ -126,7 +131,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+            className="w-full rounded-lg bg-[#0A3622] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0D452B] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? 'Signing in...' : 'Sign In'}
           </button>
@@ -134,7 +139,7 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{' '}
-          <Link href="/auth/register" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
+          <Link href="/auth/register" className="font-medium text-[#0A3622] hover:text-[#0D452B]">
             Sign up
           </Link>
         </p>

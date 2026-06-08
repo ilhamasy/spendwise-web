@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
 import AuthBackground from '@/components/AuthBackground'
+import owlLogo from '@/assets/owl.png'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -17,6 +18,19 @@ export default function RegisterPage() {
   const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isOffline, setIsOffline] = useState(false)
+
+  useEffect(() => {
+    setIsOffline(!navigator.onLine)
+    const goOffline = () => setIsOffline(true)
+    const goOnline = () => setIsOffline(false)
+    window.addEventListener('offline', goOffline)
+    window.addEventListener('online', goOnline)
+    return () => {
+      window.removeEventListener('offline', goOffline)
+      window.removeEventListener('online', goOnline)
+    }
+  }, [])
 
   function validate(): string | null {
     if (!name.trim()) return 'Name is required'
@@ -31,7 +45,7 @@ export default function RegisterPage() {
     e.preventDefault()
     setError('')
 
-    if (!navigator.onLine) {
+    if (isOffline) {
       setError('You must be online to register')
       return
     }
@@ -58,7 +72,11 @@ export default function RegisterPage() {
       <div className="flex min-h-dvh items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">SpendWise</h1>
+          <img src={owlLogo.src} alt="SpendWise" className="mx-auto h-20 w-20" />
+          <h1 className="mt-4 text-3xl font-bold">
+            <span className="text-[#0A3622]">Spend</span>
+            <span className="text-[#2ECC71]">Wise</span>
+          </h1>
           <p className="mt-2 text-muted-foreground">Create your account</p>
         </div>
 
@@ -78,7 +96,7 @@ export default function RegisterPage() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-[#0A3622] focus:outline-none focus:ring-1 focus:ring-[#0A3622]/30"
               placeholder="Your name"
               autoComplete="name"
               required
@@ -94,7 +112,7 @@ export default function RegisterPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-[#0A3622] focus:outline-none focus:ring-1 focus:ring-[#0A3622]/30"
               placeholder="you@example.com"
               autoComplete="email"
               required
@@ -180,7 +198,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+            className="w-full rounded-lg bg-[#0A3622] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0D452B] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? 'Creating account...' : 'Create Account'}
           </button>
@@ -188,7 +206,7 @@ export default function RegisterPage() {
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{' '}
-          <Link href="/auth/login" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
+          <Link href="/auth/login" className="font-medium text-[#0A3622] hover:text-[#0D452B]">
             Sign in
           </Link>
         </p>
