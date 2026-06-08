@@ -1,11 +1,20 @@
 import type { Metadata, Viewport } from "next"
-import { Inter } from "next/font/google"
+import localFont from "next/font/local"
 import "./globals.css"
 import AppLayout from "@/components/AppLayout"
 
-const inter = Inter({
+const inter = localFont({
   variable: "--font-inter",
-  subsets: ["latin"],
+  src: [
+    {
+      path: "../assets/Inter/Inter-VariableFont_opsz,wght.ttf",
+      style: "normal",
+    },
+    {
+      path: "../assets/Inter/Inter-Italic-VariableFont_opsz,wght.ttf",
+      style: "italic",
+    },
+  ],
 })
 
 export const metadata: Metadata = {

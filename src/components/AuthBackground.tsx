@@ -19,8 +19,8 @@ export default function AuthBackground({ children }: { children: React.ReactNode
         <div
           className="absolute inset-0 z-0"
           style={{
-            backgroundImage:
-              'radial-gradient(circle 600px at 0% 200px, #bfdbfe, transparent), radial-gradient(circle 600px at 100% 200px, #bfdbfe, transparent)',
+            backgroundImage: 'radial-gradient(125% 125% at 50% 10%, #ffffff 40%, #41B883 100%)',
+            backgroundSize: '100% 100%',
           }}
         />
       )}
