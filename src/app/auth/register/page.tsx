@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
 import AuthBackground from '@/components/AuthBackground'
+import Loader from '@/components/Loader'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -68,6 +69,8 @@ export default function RegisterPage() {
               {error}
             </div>
           )}
+
+          {isSubmitting && <Loader />}
 
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-foreground">
