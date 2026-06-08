@@ -91,7 +91,7 @@ export default function RegisterPage() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-[#0A3622] focus:outline-none focus:ring-1 focus:ring-[#0A3622]/30 dark:bg-white dark:text-gray-900"
+              className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-[#0A3622] focus:outline-none focus:ring-1 focus:ring-[#0A3622]/30"
               placeholder="Your name"
               autoComplete="name"
               required
@@ -107,7 +107,7 @@ export default function RegisterPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-[#0A3622] focus:outline-none focus:ring-1 focus:ring-[#0A3622]/30 dark:bg-white dark:text-gray-900"
+              className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-[#0A3622] focus:outline-none focus:ring-1 focus:ring-[#0A3622]/30"
               placeholder="you@example.com"
               autoComplete="email"
               required
