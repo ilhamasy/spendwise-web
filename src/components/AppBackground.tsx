@@ -26,18 +26,16 @@ export default function AppBackground({ children }: { children: React.ReactNode 
             'radial-gradient(ellipse 80% 80% at 100% 0%, #000 50%, transparent 90%)',
         }}
       />
-      {/* Dark top spotlight */}
+      {/* Dark grid */}
       <div
         className="absolute inset-0 z-0 hidden dark:block"
         style={{
-          background: `
-            radial-gradient(
-              circle at top,
-              rgba(255, 255, 255, 0.08) 0%,
-              rgba(255, 255, 255, 0.08) 20%,
-              rgba(0, 0, 0, 0.0) 60%
-            )
+          background: '#000000',
+          backgroundImage: `
+            linear-gradient(to right, rgba(75, 85, 99, 0.4) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(75, 85, 99, 0.4) 1px, transparent 1px)
           `,
+          backgroundSize: '40px 40px',
         }}
       />
       <div className="relative z-10">{children}</div>
