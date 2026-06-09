@@ -61,6 +61,10 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+.safe-top {
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 4px;
