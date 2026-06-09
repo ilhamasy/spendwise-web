@@ -16,14 +16,19 @@ const LoadingContext = createContext<LoadingContextType>({
 export function LoadingProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false)
 
-  const showLoading = useCallback(() => setLoading(true), [])
-  const hideLoading = useCallback(() => setLoading(false), [])
+  const showLoading = useCallback(() => {
+    setLoading(true)
+  }, [])
+
+  const hideLoading = useCallback(() => {
+    setTimeout(() => setLoading(false), 300)
+  }, [])
 
   return (
     <LoadingContext.Provider value={{ showLoading, hideLoading }}>
       {children}
       {loading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <img src={dollarGif.src} alt="Loading..." className="h-20 w-20" />
         </div>
       )}
