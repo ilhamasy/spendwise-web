@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import type { Category } from '@/types'
 import { getAllCategories, createCategory, seedDefaultCategories } from '@/lib/category-service'
 import { createTransaction } from '@/lib/transaction-service'
+import { useLoading } from './LoadingProvider'
 import { db } from '@/lib/db'
 import { formatCurrencyInput, parseCurrencyInput } from '@/lib/currency'
 import CategoryModal from './CategoryModal'
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export default function AddTransactionModal({ open, onClose, onSuccess }: Props) {
+  const { showLoading, hideLoading } = useLoading()
   const [type, setType] = useState<'expense' | 'income'>('expense')
   const [categoryId, setCategoryId] = useState('')
   const [amountDisplay, setAmountDisplay] = useState('')
@@ -123,6 +125,7 @@ export default function AddTransactionModal({ open, onClose, onSuccess }: Props)
     }
 
     setIsSubmitting(true)
+    showLoading()
     try {
       await createTransaction({
         type,
@@ -133,11 +136,13 @@ export default function AddTransactionModal({ open, onClose, onSuccess }: Props)
       })
       onSuccess?.()
       setIsSubmitting(false)
+      hideLoading()
       resetForm()
       onClose()
     } catch {
       setError('Failed to save transaction')
       setIsSubmitting(false)
+      hideLoading()
     }
   }
 

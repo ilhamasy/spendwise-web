@@ -6,13 +6,14 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
 import { useTheme } from '@/lib/theme'
 import AuthBackground from '@/components/AuthBackground'
-import Loader from '@/components/Loader'
+import { useLoading } from '@/components/LoadingProvider'
 import { Sun, Moon } from 'lucide-react'
 
 export default function RegisterPage() {
   const router = useRouter()
   const { register } = useAuth()
   const { resolved, setTheme } = useTheme()
+  const { showLoading, hideLoading } = useLoading()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -47,6 +48,7 @@ export default function RegisterPage() {
     }
 
     setIsSubmitting(true)
+    showLoading()
     try {
       await register(name.trim(), email.trim(), password)
       router.push('/auth/login')
@@ -54,6 +56,7 @@ export default function RegisterPage() {
       setError(err instanceof Error ? err.message : 'Registration failed')
     } finally {
       setIsSubmitting(false)
+      hideLoading()
     }
   }
 
@@ -79,8 +82,6 @@ export default function RegisterPage() {
               {error}
             </div>
           )}
-
-          {isSubmitting && <Loader />}
 
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-foreground">
