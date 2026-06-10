@@ -38,7 +38,7 @@ export async function getAllCategories(type?: 'income' | 'expense'): Promise<Cat
   if (type) {
     collection = db.categories.where('type').equals(type)
   }
-  return (await collection.toArray()).filter((c) => c.status !== 'archived' && !(c as Record<string, unknown>).isDeleted)
+  return (await collection.toArray()).filter((c) => c.status !== 'archived' && !(c as unknown as Record<string, unknown>).isDeleted)
 }
 
 export async function getCategoryById(id: string): Promise<Category | undefined> {

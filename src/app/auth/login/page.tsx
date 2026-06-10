@@ -4,10 +4,16 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
+import { useTheme } from '@/lib/theme'
+import AuthBackground from '@/components/AuthBackground'
+import { useLoading } from '@/components/LoadingProvider'
+import { Sun, Moon } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
   const { login } = useAuth()
+  const { resolved, setTheme } = useTheme()
+  const { showLoading, hideLoading } = useLoading()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -42,6 +48,7 @@ export default function LoginPage() {
     }
 
     setIsSubmitting(true)
+    showLoading()
     try {
       await login(email.trim(), password)
       router.push('/dashboard')
@@ -49,11 +56,20 @@ export default function LoginPage() {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {
       setIsSubmitting(false)
+      hideLoading()
     }
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center px-4">
+    <AuthBackground>
+      <button
+        onClick={() => setTheme(resolved === 'dark' ? 'light' : 'dark')}
+        className="fixed right-4 top-4 z-20 rounded-full border border-border bg-card/60 p-2 backdrop-blur-sm transition-colors hover:bg-card"
+        aria-label="Toggle theme"
+      >
+        {resolved === 'dark' ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-600" />}
+      </button>
+      <div className="flex min-h-dvh items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">SpendWise</h1>
@@ -76,7 +92,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-[#0A3622] focus:outline-none focus:ring-1 focus:ring-[#0A3622]/30"
               placeholder="you@example.com"
               autoComplete="email"
               required
@@ -93,7 +109,7 @@ export default function LoginPage() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full rounded-lg border border-border bg-card px-3 py-2.5 pr-10 text-foreground placeholder:text-muted-foreground focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="block w-full rounded-lg border border-border bg-card px-3 py-2.5 pr-10 text-foreground placeholder:text-muted-foreground focus:border-[#0A3622] focus:outline-none focus:ring-1 focus:ring-[#0A3622]/30"
                 placeholder="Enter your password"
                 autoComplete="current-password"
                 required
@@ -137,6 +153,7 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
-    </div>
+      </div>
+    </AuthBackground>
   )
 }

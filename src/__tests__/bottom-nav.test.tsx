@@ -11,11 +11,12 @@ afterEach(() => {
 })
 
 describe('BottomNav', () => {
-  it('renders all 4 navigation items', () => {
+  it('renders all 5 navigation items', () => {
     render(<BottomNav />)
     expect(screen.getByText('Dashboard')).toBeInTheDocument()
     expect(screen.getByText('Transactions')).toBeInTheDocument()
     expect(screen.getByText('Goals')).toBeInTheDocument()
+    expect(screen.getByText('Budget')).toBeInTheDocument()
     expect(screen.getByText('Settings')).toBeInTheDocument()
   })
 
@@ -23,6 +24,6 @@ describe('BottomNav', () => {
     render(<BottomNav />)
     const links = screen.getAllByText('Dashboard')
     const dashboardLink = links[0].closest('a')
-    expect(dashboardLink?.className).toContain('text-primary')
+    expect(dashboardLink?.className).toContain('6e44ff')
   })
 })

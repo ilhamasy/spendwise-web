@@ -4,17 +4,23 @@ import { AuthProvider } from '@/lib/auth'
 import { ThemeProvider } from '@/lib/theme'
 import { ToastProvider } from './ToastProvider'
 import PWAProvider from './PWAProvider'
+import { LoadingProvider } from './LoadingProvider'
+import AppBackground from './AppBackground'
 import AppShell from './AppShell'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <ToastProvider>
-          <PWAProvider>
-            <AppShell>{children}</AppShell>
-          </PWAProvider>
-        </ToastProvider>
+        <LoadingProvider>
+          <ToastProvider>
+            <PWAProvider>
+              <AppBackground>
+                <AppShell>{children}</AppShell>
+              </AppBackground>
+            </PWAProvider>
+          </ToastProvider>
+        </LoadingProvider>
       </ThemeProvider>
     </AuthProvider>
   )

@@ -3,18 +3,14 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
-import dashboardIcon from '@/assets/icons8-dashboard-94.png'
-import billIcon from '@/assets/icons8-bill-94.png'
-import goalIcon from '@/assets/icons8-goal-94.png'
-import budgetIcon from '@/assets/icons8-budget-94.png'
-import settingIcon from '@/assets/icons8-setting-94.png'
+import { PieChart, List, Target, HandCoins, Settings } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', href: '/dashboard', icon: dashboardIcon },
-  { label: 'Transactions', href: '/transactions', icon: billIcon },
-  { label: 'Goals', href: '/goals', icon: goalIcon },
-  { label: 'Budget', href: '/budget', icon: budgetIcon },
-  { label: 'Settings', href: '/settings', icon: settingIcon },
+  { label: 'Dashboard', href: '/dashboard', icon: PieChart },
+  { label: 'Transactions', href: '/transactions', icon: List },
+  { label: 'Goals', href: '/goals', icon: Target },
+  { label: 'Budget', href: '/budget', icon: HandCoins },
+  { label: 'Settings', href: '/settings', icon: Settings },
 ]
 
 export default function BottomNav() {
@@ -29,18 +25,18 @@ export default function BottomNav() {
       <div className="relative flex items-center gap-0.5 rounded-full border border-white/20 bg-white/60 px-1.5 py-1.5 shadow-[0_8px_32px_0_rgba(0,0,0,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-gray-950/60 dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.4)]">
         {NAV_ITEMS.map((item, index) => {
           const isActive = index === activeIndex
+          const Icon = item.icon
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`relative z-10 flex flex-col items-center justify-center gap-0.5 rounded-full px-4 py-1.5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
+              className={`relative z-10 flex flex-col items-center justify-center gap-0.5 rounded-full px-4 py-1.5 ${isActive ? 'text-[#6e44ff]' : 'text-muted-foreground'}`}
             >
               <motion.div
                 animate={{ scale: isActive ? 1.1 : 1 }}
                 transition={{ type: 'spring', stiffness: 380, damping: 30 }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.icon.src} alt={item.label} className="h-5 w-5" />
+                <Icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
               </motion.div>
               <span className="text-[10px] font-semibold">
                 {item.label}
