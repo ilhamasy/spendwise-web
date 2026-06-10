@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/dashboard' }))
@@ -36,21 +36,21 @@ describe('ConfirmDialog', () => {
 })
 
 describe('KpiCard', () => {
-  const icon = CATEGORY_EMOJIS[0] as unknown as { src: string }
+  const mockIcon = { src: '/test.png', height: 24, width: 24 } as unknown as Parameters<typeof KpiCard>[0]['icon']
 
   it('renders title and value', () => {
-    render(<KpiCard title="Total" value="Rp 100" change="+5%" isPositive icon={{ src: 'test.png' } as unknown as typeof icon} />)
+    render(<KpiCard title="Total" value="Rp 100" change="+5%" isPositive icon={mockIcon} />)
     expect(screen.getByText('Total')).toBeInTheDocument()
     expect(screen.getByText('Rp 100')).toBeInTheDocument()
   })
 
   it('shows positive change with up icon', () => {
-    render(<KpiCard title="T" value="V" change="+10%" isPositive icon={{ src: 'test.png' } as unknown as typeof icon} />)
+    render(<KpiCard title="T" value="V" change="+10%" isPositive icon={mockIcon} />)
     expect(screen.getByText('+10%')).toBeInTheDocument()
   })
 
   it('shows negative change with down icon', () => {
-    render(<KpiCard title="T" value="V" change="-5%" isPositive={false} icon={{ src: 'test.png' } as unknown as typeof icon} />)
+    render(<KpiCard title="T" value="V" change="-5%" isPositive={false} icon={mockIcon} />)
     expect(screen.getByText('-5%')).toBeInTheDocument()
   })
 })
@@ -85,9 +85,8 @@ describe('CategoryModal', () => {
 
   it('renders emoji grid', () => {
     render(<CategoryModal open onSave={() => {}} onClose={() => {}} />)
-    // Should have emoji buttons
     const emojis = CATEGORY_EMOJIS.slice(0, 5)
-    emojis.forEach((e) => {
+    emojis.forEach((e: string) => {
       expect(screen.getByText(e)).toBeInTheDocument()
     })
   })

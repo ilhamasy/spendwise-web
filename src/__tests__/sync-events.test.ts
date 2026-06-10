@@ -125,6 +125,6 @@ describe('SyncMerge - Category isDeleted', () => {
     // Category should be stored with archived status
     const cat = await db.categories.get('cat-del')
     expect(cat).toBeTruthy()
-    expect((cat as Record<string, unknown>).status).toBe('archived')
+    expect((cat as unknown as Record<string, unknown>).status).toBe('archived')
   })
 })

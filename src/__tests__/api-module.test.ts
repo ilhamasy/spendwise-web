@@ -134,8 +134,8 @@ describe('API module - fetch', () => {
     const { api } = await import('@/lib/api')
     await api.sync('', [])
 
-    const call = mockFetch.mock.calls[0]
-    const headers = call[1]?.headers as Record<string, string>
+    const call = mockFetch.mock.calls[0] as unknown as Parameters<typeof fetch>
+    const headers = (call[1] as RequestInit)?.headers as Record<string, string>
     expect(headers['Authorization']).toBe('Bearer my-jwt-token')
   })
 })
