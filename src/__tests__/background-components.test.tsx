@@ -34,7 +34,7 @@ describe('AppBackground', () => {
   })
 
   it('skips background on auth pages', async () => {
-    mockPathname.mockReturnValue('/auth/login')
+    mockPathname.mockReturnValue('/')
     const { default: AppBackground } = await import('@/components/AppBackground')
     const { container } = render(<AppBackground><div>Auth</div></AppBackground>)
     expect(container.textContent).toBe('Auth')

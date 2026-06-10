@@ -94,7 +94,7 @@ export default function SettingsPage() {
     const users = JSON.parse(localStorage.getItem('spendwise-users') || '[]')
     localStorage.setItem('spendwise-users', JSON.stringify(users.filter((u: { id: string }) => u.id !== user.id)))
     logout()
-    router.push('/auth/login')
+    router.push('/')
   }
 
   function handleExportCSV() {
@@ -127,7 +127,7 @@ export default function SettingsPage() {
 
   function handleLogout() {
     logout()
-    router.push('/auth/login')
+    router.push('/')
   }
 
   return (

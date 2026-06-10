@@ -33,7 +33,7 @@ export default function Sidebar() {
 
   function handleLogout() {
     logout()
-    router.push('/auth/login')
+    router.push('/')
   }
 
   return (
