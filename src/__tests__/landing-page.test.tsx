@@ -15,7 +15,7 @@ vi.mock('@/components/LoadingProvider', () => ({
   useLoading: () => ({ showLoading: vi.fn(), hideLoading: vi.fn() }),
   LoadingProvider: ({ c }: { c: React.ReactNode }) => c,
 }))
-vi.mock('@/assets/mockup-device-dashboard.png', () => ({ default: { src: '/mockup.png', height: 600, width: 800 } }))
+vi.mock('@/assets/mockup-device.png', () => ({ default: { src: '/mockup.png', height: 600, width: 800 } }))
 
 import AuthModal from '@/components/AuthModal'
 import LandingPage from '@/components/LandingPage'

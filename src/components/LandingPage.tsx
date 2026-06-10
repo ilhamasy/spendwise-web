@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useAuth } from '@/lib/auth'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
-import mockupImage from '@/assets/mockup-device-dashboard.png'
+import mockupImage from '@/assets/mockup-device.png'
 import AuthModal from '@/components/AuthModal'
 
 const MONEYTORY_DATA = [

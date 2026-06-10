@@ -93,8 +93,8 @@ export default function SettingsPage() {
     await db.categories.clear()
     const users = JSON.parse(localStorage.getItem('spendwise-users') || '[]')
     localStorage.setItem('spendwise-users', JSON.stringify(users.filter((u: { id: string }) => u.id !== user.id)))
-    logout()
-    router.push('/')
+    await logout()
+    window.location.href = '/'
   }
 
   function handleExportCSV() {
@@ -125,9 +125,9 @@ export default function SettingsPage() {
     URL.revokeObjectURL(url)
   }
 
-  function handleLogout() {
-    logout()
-    router.push('/')
+  async function handleLogout() {
+    await logout()
+    window.location.href = '/'
   }
 
   return (
