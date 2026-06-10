@@ -192,6 +192,25 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+
+        {/* Footer */}
+        <div className="mt-20 sm:mt-28 border-t border-slate-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold text-violet-600">SpendWise</span>
+              </div>
+              <div className="flex items-center gap-6 text-sm text-slate-500">
+                <button onClick={() => setShowAuth(true)} className="hover:text-violet-600 transition-colors">Sign In</button>
+                <span className="text-slate-300">|</span>
+                <span>Track every Rupiah. Spend Smarter.</span>
+              </div>
+              <p className="text-xs text-slate-400">
+                &copy; {new Date().getFullYear()} Ilham Asyari. All rights reserved.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
