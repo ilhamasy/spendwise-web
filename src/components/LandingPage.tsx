@@ -68,20 +68,12 @@ export default function LandingPage() {
             </button>
           </div>
 
-          {/* Right Column — Device Mockup (blended into background) */}
-          <div className="flex justify-center lg:justify-end relative">
-            {/* Fade mask overlay to blend edges into background */}
-            <div
-              className="absolute inset-0 z-10 pointer-events-none"
-              style={{
-                background: 'radial-gradient(ellipse 70% 80% at 50% 50%, transparent 40%, white 100%)',
-              }}
-            />
+          {/* Right Column — Device Mockup */}
+          <div className="flex justify-center lg:justify-end">
             <img
               src={mockupImage.src}
               alt="SpendWise Dashboard on MacBook, iPad, and iPhone"
-              className="w-full max-w-md sm:max-w-lg lg:max-w-xl relative"
-              style={{ filter: 'drop-shadow(0 4px 24px rgba(139, 92, 246, 0.08))' }}
+              className="w-full max-w-md sm:max-w-lg lg:max-w-xl"
             />
           </div>
         </div>
