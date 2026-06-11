@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import mockupImage from '@/assets/mockup-device.png'
@@ -12,6 +12,11 @@ const MONEYTORY_DATA = [
   { name: 'Ngopi', value: 14, color: '#ef4444' },
   { name: 'Beverage', value: 20, color: '#10b981' },
   { name: 'Other', value: 3, color: '#9ca3af' },
+]
+
+const ANIMATED_WORDS = [
+  'Track every Rupiah. Spend Smarter',
+  'Everywhere, Every Device, No need to download app, just access it.',
 ]
 
 export default function LandingPage() {
@@ -53,11 +58,8 @@ export default function LandingPage() {
             <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold font-sans text-slate-900 tracking-tight">
               SpendWise
             </h1>
-            <p className="text-lg sm:text-xl lg:text-2xl text-slate-600 font-medium">
-              Track every Rupiah. Spend Smarter
-            </p>
-            <p className="text-sm sm:text-base text-slate-500 max-w-md mx-auto lg:mx-0">
-              Everywhere, Every Device, No need to download app, just access it.
+            <p className="text-lg sm:text-xl lg:text-2xl text-slate-600 font-medium min-h-[2em]">
+              <TypingAnimation words={ANIMATED_WORDS} loop />
             </p>
             <button
               onClick={() => setShowAuth(true)}
@@ -215,5 +217,47 @@ export default function LandingPage() {
 
       <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
     </div>
+  )
+}
+
+function TypingAnimation({ words, loop = false }: { words: string[]; loop?: boolean }) {
+  const [wordIndex, setWordIndex] = useState(0)
+  const [charIndex, setCharIndex] = useState(0)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  useEffect(() => {
+    const currentWord = words[wordIndex]
+    const typeSpeed = isDeleting ? 40 : 80
+    const deleteSpeed = 30
+
+    if (!isDeleting && charIndex === currentWord.length) {
+      const pause = setTimeout(() => setIsDeleting(true), 2500)
+      return () => clearTimeout(pause)
+    }
+
+    if (isDeleting && charIndex === 0) {
+      setIsDeleting(false)
+      if (wordIndex === words.length - 1) {
+        if (loop) {
+          setWordIndex(0)
+        }
+      } else {
+        setWordIndex(wordIndex + 1)
+      }
+      return
+    }
+
+    const timeout = setTimeout(() => {
+      setCharIndex(charIndex + (isDeleting ? -1 : 1))
+    }, isDeleting ? deleteSpeed : typeSpeed)
+
+    return () => clearTimeout(timeout)
+  }, [charIndex, isDeleting, wordIndex, words, loop])
+
+  return (
+    <>
+      {words[wordIndex].slice(0, charIndex)}
+      <span className="animate-pulse text-violet-500">|</span>
+    </>
   )
 }
