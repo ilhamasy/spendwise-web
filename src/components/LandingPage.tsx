@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useReducer } from 'react'
 import { useAuth } from '@/lib/auth'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
+import Image from 'next/image'
 import mockupImage from '@/assets/mockup-device.png'
 import AuthModal from '@/components/AuthModal'
 
@@ -32,8 +33,6 @@ export default function LandingPage() {
   }
 
   if (user) return null
-
-  const total = MONEYTORY_DATA.reduce((s, d) => s + d.value, 0)
 
   return (
     <div className="min-h-screen w-full bg-white relative overflow-x-hidden">
@@ -72,10 +71,11 @@ export default function LandingPage() {
 
           {/* Right Column — Device Mockup */}
           <div className="flex justify-center lg:justify-end">
-            <img
-              src={mockupImage.src}
+            <Image
+              src={mockupImage}
               alt="SpendWise Dashboard on MacBook, iPad, and iPhone"
-              className="w-full max-w-md sm:max-w-lg lg:max-w-xl"
+              className="w-full max-w-md sm:max-w-lg lg:max-w-xl h-auto"
+              priority
             />
           </div>
         </div>
@@ -221,35 +221,31 @@ export default function LandingPage() {
 }
 
 function TypingAnimation({ words, loop = false }: { words: string[]; loop?: boolean }) {
-  const [wordIndex, setWordIndex] = useState(0)
-  const [charIndex, setCharIndex] = useState(0)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [{ wordIndex, charIndex, isDeleting }, dispatch] = useReducer(
+    (s: { wordIndex: number; charIndex: number; isDeleting: boolean }, a: Partial<typeof s>) => ({ ...s, ...a }),
+    { wordIndex: 0, charIndex: 0, isDeleting: false }
+  )
 
   useEffect(() => {
     const currentWord = words[wordIndex]
-    const typeSpeed = isDeleting ? 40 : 80
-    const deleteSpeed = 30
 
     if (!isDeleting && charIndex === currentWord.length) {
-      const pause = setTimeout(() => setIsDeleting(true), 2500)
+      const pause = setTimeout(() => dispatch({ isDeleting: true }), 2500)
       return () => clearTimeout(pause)
     }
 
     if (isDeleting && charIndex === 0) {
-      setIsDeleting(false)
       if (wordIndex === words.length - 1) {
-        if (loop) {
-          setWordIndex(0)
-        }
+        if (loop) dispatch({ wordIndex: 0, isDeleting: false })
       } else {
-        setWordIndex(wordIndex + 1)
+        dispatch({ wordIndex: wordIndex + 1, isDeleting: false })
       }
       return
     }
 
     const timeout = setTimeout(() => {
-      setCharIndex(charIndex + (isDeleting ? -1 : 1))
-    }, isDeleting ? deleteSpeed : typeSpeed)
+      dispatch({ charIndex: charIndex + (isDeleting ? -1 : 1) })
+    }, isDeleting ? 30 : 80)
 
     return () => clearTimeout(timeout)
   }, [charIndex, isDeleting, wordIndex, words, loop])
