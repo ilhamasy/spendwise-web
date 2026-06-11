@@ -6,6 +6,7 @@ vi.mock('next/navigation', () => ({
   usePathname: () => mockPathname(),
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }))
+vi.mock('next/image', () => ({ default: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} /> }))
 
 vi.mock('@/lib/theme', () => ({
   useTheme: () => ({ resolved: 'light', setTheme: vi.fn() }),
@@ -34,7 +35,7 @@ describe('AppBackground', () => {
   })
 
   it('skips background on auth pages', async () => {
-    mockPathname.mockReturnValue('/auth/login')
+    mockPathname.mockReturnValue('/')
     const { default: AppBackground } = await import('@/components/AppBackground')
     const { container } = render(<AppBackground><div>Auth</div></AppBackground>)
     expect(container.textContent).toBe('Auth')

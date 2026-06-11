@@ -16,7 +16,6 @@ import {
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/lib/auth'
 import { useTheme } from '@/lib/theme'
-import { useRouter } from 'next/navigation'
 
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -29,11 +28,10 @@ export default function Sidebar() {
   const pathname = usePathname()
   const { user, logout } = useAuth()
   const { resolved, setTheme } = useTheme()
-  const router = useRouter()
-
+  
   function handleLogout() {
     logout()
-    router.push('/auth/login')
+    window.location.href = '/'
   }
 
   return (
