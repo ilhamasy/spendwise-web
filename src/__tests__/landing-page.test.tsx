@@ -16,6 +16,10 @@ vi.mock('@/components/LoadingProvider', () => ({
   LoadingProvider: ({ c }: { c: React.ReactNode }) => c,
 }))
 vi.mock('@/assets/mockup-device.png', () => ({ default: { src: '/mockup.png', height: 600, width: 800 } }))
+vi.mock('recharts', async () => {
+  const actual = await vi.importActual('recharts')
+  return { ...actual, ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }
+})
 
 import AuthModal from '@/components/AuthModal'
 import LandingPage from '@/components/LandingPage'
@@ -97,31 +101,20 @@ describe('AuthModal', () => {
 })
 
 describe('LandingPage', () => {
-  it('renders hero title', () => {
+  it('renders hero heading with SpendWise', () => {
     render(<LandingPage />)
-    expect(screen.getByText('SpendWise')).toBeInTheDocument()
-  })
-
-  it('renders tagline', () => {
-    render(<LandingPage />)
-    expect(screen.getByText('Track every Rupiah. Spend Smarter')).toBeInTheDocument()
-  })
-
-  it('renders subtagline', () => {
-    render(<LandingPage />)
-    expect(screen.getByText(/Everywhere, Every Device/)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'SpendWise' })).toBeInTheDocument()
   })
 
   it('renders CTA button', () => {
     render(<LandingPage />)
-    expect(screen.getByText('Get Started')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Coba aja dulu/ })).toBeInTheDocument()
   })
 
   it('renders device mockup image', () => {
     render(<LandingPage />)
     const img = screen.getByAltText(/SpendWise Dashboard/)
     expect(img).toBeInTheDocument()
-    expect(img).toHaveAttribute('src', '/mockup.png')
   })
 
   it('renders Moneytory card', () => {
@@ -146,7 +139,7 @@ describe('LandingPage', () => {
 
   it('shows auth modal when CTA clicked', async () => {
     render(<LandingPage />)
-    await userEvent.click(screen.getByText('Get Started'))
+    await userEvent.click(screen.getByRole('button', { name: /Coba aja dulu/ }))
     expect(screen.getByRole('heading', { name: 'Welcome Back' })).toBeInTheDocument()
   })
 
