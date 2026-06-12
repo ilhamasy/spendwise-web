@@ -1,12 +1,19 @@
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
-import LandingPage from '@/components/LandingPage'
+'use client'
 
-export default async function NotFound() {
-  const cookieStore = await cookies()
-  const token = cookieStore.get('spendwise-token')?.value
-  if (token) {
-    redirect('/dashboard')
-  }
-  return <LandingPage />
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+
+export default function NotFound() {
+  const router = useRouter()
+
+  useEffect(() => {
+    const token = document.cookie.includes('spendwise-token=')
+    router.replace(token ? '/dashboard' : '/')
+  }, [router])
+
+  return (
+    <div className="flex min-h-dvh items-center justify-center bg-white">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-violet-600" />
+    </div>
+  )
 }
