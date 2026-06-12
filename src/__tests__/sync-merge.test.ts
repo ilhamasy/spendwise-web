@@ -10,10 +10,7 @@ vi.mock('@/lib/api', () => ({
       newSyncTimestamp: new Date().toISOString(),
       conflicts: [],
     })),
-  },
-  setAuthToken: () => {},
-  getAuthToken: () => null,
-}))
+  },}))
 
 import { db } from '@/lib/db'
 

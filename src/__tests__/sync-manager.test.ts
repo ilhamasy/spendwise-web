@@ -9,10 +9,7 @@ vi.mock('@/lib/api', () => ({
     }),
     login: () => Promise.reject(new Error('offline')),
     register: () => Promise.reject(new Error('offline')),
-  },
-  setAuthToken: () => {},
-  getAuthToken: () => null,
-}))
+  },}))
 
 import { db } from '@/lib/db'
 

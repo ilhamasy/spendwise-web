@@ -21,10 +21,7 @@ vi.mock('@/lib/api', () => ({
       newSyncTimestamp: new Date().toISOString(),
       conflicts: [],
     })),
-  },
-  setAuthToken: () => {},
-  getAuthToken: () => null,
-}))
+  },}))
 
 beforeEach(async () => {
   await db.syncQueue.clear()

@@ -6,10 +6,7 @@ vi.mock('@/lib/api', () => ({
     login: vi.fn(),
     register: vi.fn(),
     sync: vi.fn(),
-  },
-  setAuthToken: vi.fn(),
-  getAuthToken: () => null,
-}))
+  },}))
 
 vi.mock('@/lib/sync-manager', () => ({
   syncManager: {

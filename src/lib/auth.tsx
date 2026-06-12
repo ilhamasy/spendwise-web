@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { api, setAuthToken } from '@/lib/api'
+import { api } from '@/lib/api'
 import { syncManager } from '@/lib/sync-manager'
 
 interface AuthUser {
@@ -46,8 +46,6 @@ function saveUsers(users: StoredUser[]) {
 function setSession(userId: string, token?: string) {
   localStorage.setItem('spendwise-session', userId)
   if (token) {
-    localStorage.setItem('spendwise-token', token)
-    setAuthToken(token)
     document.cookie = `spendwise-token=${token}; path=/; max-age=604800; SameSite=Lax`
   }
 }
@@ -55,7 +53,6 @@ function setSession(userId: string, token?: string) {
 function clearSession() {
   localStorage.removeItem('spendwise-session')
   localStorage.removeItem('spendwise-token')
-  setAuthToken(null)
   document.cookie = 'spendwise-token=; path=/; max-age=0'
 }
 
@@ -69,9 +66,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem('spendwise-token')
-    if (token) setAuthToken(token)
-
     const sessionId = getSession()
     if (sessionId) {
       const storedProfile = localStorage.getItem('spendwise-profile')
@@ -94,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     try {
       const res = await api.login(email, password)
-      setSession(res.user.id, res.accessToken)
+      setSession(res.user.id)
       localStorage.setItem('spendwise-profile', JSON.stringify(res.user))
       setUser({ id: res.user.id, name: res.user.name, email: res.user.email })
       return
@@ -119,7 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = useCallback(async (name: string, email: string, password: string) => {
     try {
       const res = await api.register(name, email, password)
-      setSession(res.user.id, res.accessToken)
+      setSession(res.user.id)
       localStorage.setItem('spendwise-profile', JSON.stringify(res.user))
       return
     } catch {

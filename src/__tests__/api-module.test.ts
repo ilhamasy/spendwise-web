@@ -6,20 +6,12 @@ beforeEach(() => {
 })
 
 describe('API module - basic', () => {
-  it('setAuthToken stores token', async () => {
-    const { setAuthToken } = await import('@/lib/api')
-    setAuthToken('test-token')
-    const { getAuthToken } = await import('@/lib/api')
-    expect(getAuthToken()).toBe('test-token')
-    setAuthToken(null)
-    expect(getAuthToken()).toBeNull()
-  })
-
   it('api object has all expected methods', async () => {
     const { api } = await import('@/lib/api')
     expect(api).toBeDefined()
     expect(typeof api.login).toBe('function')
     expect(typeof api.register).toBe('function')
+    expect(typeof api.logout).toBe('function')
     expect(typeof api.sync).toBe('function')
     expect(typeof api.createTransaction).toBe('function')
     expect(typeof api.createCategory).toBe('function')
@@ -33,7 +25,7 @@ describe('API module - fetch', () => {
     const mockFetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ accessToken: 'at', refreshToken: 'rt', user: { id: 'u1', name: 'T', email: 't@t.com' } }),
+        json: () => Promise.resolve({ user: { id: 'u1', name: 'T', email: 't@t.com' } }),
         statusText: 'OK',
       } as unknown as Response)
     )
@@ -42,10 +34,10 @@ describe('API module - fetch', () => {
     const { api } = await import('@/lib/api')
     const result = await api.login('test@test.com', 'password')
 
-    expect(result.accessToken).toBe('at')
+    expect(result.user.id).toBe('u1')
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining('/api/v1/auth/login'),
-      expect.objectContaining({ method: 'POST' })
+      expect.objectContaining({ method: 'POST', credentials: 'include' })
     )
   })
 
@@ -68,7 +60,7 @@ describe('API module - fetch', () => {
     const mockFetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ accessToken: 'at', refreshToken: 'rt', user: { id: 'u1', name: 'T', email: 't@t.com' } }),
+        json: () => Promise.resolve({ user: { id: 'u1', name: 'T', email: 't@t.com' } }),
         statusText: 'OK',
       } as unknown as Response)
     )
@@ -76,7 +68,7 @@ describe('API module - fetch', () => {
 
     const { api } = await import('@/lib/api')
     const result = await api.register('Test', 'test@test.com', 'password123')
-    expect(result.accessToken).toBe('at')
+    expect(result.user.id).toBe('u1')
   })
 
   it('createTransaction sends correct data', async () => {
@@ -118,7 +110,7 @@ describe('API module - fetch', () => {
     )
   })
 
-  it('includes authorization header when token is set', async () => {
+  it('requests include credentials for cookie-based auth', async () => {
     const mockFetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
@@ -128,14 +120,12 @@ describe('API module - fetch', () => {
     )
     vi.stubGlobal('fetch', mockFetch)
 
-    const { setAuthToken } = await import('@/lib/api')
-    setAuthToken('my-jwt-token')
-
     const { api } = await import('@/lib/api')
     await api.sync('', [])
 
-    const call = mockFetch.mock.calls[0] as unknown as Parameters<typeof fetch>
-    const headers = (call[1] as RequestInit)?.headers as Record<string, string>
-    expect(headers['Authorization']).toBe('Bearer my-jwt-token')
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ credentials: 'include' })
+    )
   })
 })

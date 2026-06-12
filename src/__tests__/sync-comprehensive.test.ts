@@ -6,10 +6,7 @@ vi.mock('@/lib/api', () => ({
     sync: vi.fn(),
     login: vi.fn(),
     register: vi.fn(),
-  },
-  setAuthToken: vi.fn(),
-  getAuthToken: () => null,
-}))
+  },}))
 
 import { db } from '@/lib/db'
 
