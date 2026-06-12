@@ -17,6 +17,12 @@ const inter = localFont({
   ],
 })
 
+const lexendBold = localFont({
+  variable: "--font-lexend-bold",
+  src: "../assets/Lexend/static/Lexend-Bold.ttf",
+  weight: "700",
+})
+
 export const metadata: Metadata = {
   title: "SpendWise — Personal Finance Tracker",
   description: "Track your income, expenses, and savings with SpendWise.",
@@ -62,7 +68,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} antialiased`}
+      className={`${inter.variable} ${lexendBold.variable} antialiased`}
       suppressHydrationWarning
     >
       <head>

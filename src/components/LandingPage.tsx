@@ -54,7 +54,7 @@ export default function LandingPage() {
         <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center">
           {/* Left Column — Hero Content */}
           <div className="space-y-4 sm:space-y-6 text-center lg:text-left">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold font-sans text-slate-900 tracking-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold font-[family-name:var(--font-lexend-bold)] text-slate-900 tracking-tight">
               SpendWise
             </h1>
             <p className="text-lg sm:text-xl lg:text-2xl text-slate-600 font-medium min-h-[2em]">
