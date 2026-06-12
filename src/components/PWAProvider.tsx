@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { WifiOff, Download, RefreshCw, Cloud } from 'lucide-react'
 import { syncManager } from '@/lib/sync-manager'
 import { useSync } from '@/lib/use-sync'
+import { useAuth } from '@/lib/auth'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -17,6 +19,22 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [dismissedInstall, setDismissedInstall] = useState(false)
   const { status, pendingCount } = useSync()
+  const { user } = useAuth()
+  const pathname = usePathname()
+
+  // Reset dismiss when user logs in (each login session gets a fresh prompt)
+  useEffect(() => {
+    if (user) {
+      setDismissedInstall(false)
+    }
+  }, [user])
+
+  // Auto-show install when deferredPrompt fires and user is on dashboard
+  useEffect(() => {
+    if (deferredPrompt && !dismissedInstall && pathname === '/dashboard') {
+      setShowInstall(true)
+    }
+  }, [deferredPrompt, dismissedInstall, pathname])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -40,7 +58,6 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
     const handleInstall = (e: Event) => {
       e.preventDefault()
       setDeferredPrompt(e as BeforeInstallPromptEvent)
-      if (!dismissedInstall) setShowInstall(true)
     }
     window.addEventListener('beforeinstallprompt', handleInstall)
 
@@ -49,7 +66,7 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
       window.removeEventListener('online', goOnline)
       window.removeEventListener('beforeinstallprompt', handleInstall)
     }
-  }, [dismissedInstall])
+  }, [])
 
   async function handleInstall() {
     if (!deferredPrompt) return
@@ -87,7 +104,7 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
         </div>
       )}
 
-      {showInstall && (
+      {showInstall && pathname === '/dashboard' && (
         <div className="fixed bottom-36 left-4 right-4 z-50 mx-auto max-w-sm rounded-2xl border border-border bg-card p-4 shadow-xl">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
