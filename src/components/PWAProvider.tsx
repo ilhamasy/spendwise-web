@@ -21,6 +21,7 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
   const { status, pendingCount } = useSync()
   const { user } = useAuth()
   const pathname = usePathname()
+  const isStandalone = typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches
 
   // Reset dismiss when user logs in (each login session gets a fresh prompt)
   useEffect(() => {
@@ -104,7 +105,7 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
         </div>
       )}
 
-      {showInstall && pathname === '/dashboard' && (
+      {showInstall && !isStandalone && pathname === '/dashboard' && (
         <div className="fixed bottom-36 left-4 right-4 z-50 mx-auto max-w-sm rounded-2xl border border-border bg-card p-4 shadow-xl">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
