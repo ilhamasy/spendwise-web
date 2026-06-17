@@ -19,7 +19,11 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers['Authorization'] = `Bearer ${authToken}`
   }
 
-  const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers })
+  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    credentials: 'include',
+    headers,
+  })
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: res.statusText }))
     throw new Error(err.message || `HTTP ${res.status}`)
@@ -40,6 +44,9 @@ export const api = {
       '/api/v1/auth/register',
       { method: 'POST', body: JSON.stringify({ name, email, password }) }
     ),
+
+  logout: () =>
+    request<{ message: string }>('/api/v1/auth/logout', { method: 'POST' }),
 
   createTransaction: (data: { type: string; amount: number; categoryId: string; occurredAt: string; note?: string }) =>
     request<{ id: string }>('/api/v1/transactions', { method: 'POST', body: JSON.stringify(data) }),

@@ -48,6 +48,7 @@ function setSession(userId: string, token?: string) {
   if (token) {
     localStorage.setItem('spendwise-token', token)
     setAuthToken(token)
+    document.cookie = `spendwise-token=${token}; path=/; max-age=604800; SameSite=Lax`
   }
 }
 
@@ -55,6 +56,7 @@ function clearSession() {
   localStorage.removeItem('spendwise-session')
   localStorage.removeItem('spendwise-token')
   setAuthToken(null)
+  document.cookie = 'spendwise-token=; path=/; max-age=0'
 }
 
 function getSession(): string | null {
