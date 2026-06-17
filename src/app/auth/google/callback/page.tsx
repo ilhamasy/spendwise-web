@@ -24,7 +24,10 @@ export default function GoogleCallback() {
     fetch(`${apiUrl}/api/v1/auth/google`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({
+        code,
+        redirectUri: `${window.location.origin}/auth/google/callback`,
+      }),
       credentials: 'include',
     })
       .then(async (res) => {
