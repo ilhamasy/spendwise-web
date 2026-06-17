@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 
 export default function GoogleCallback() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState('')
   const exchanged = useRef(false)
@@ -15,7 +14,7 @@ export default function GoogleCallback() {
 
     const code = searchParams.get('code')
     if (!code) {
-      router.push('/login?error=missing-code')
+      window.location.href = '/login?error=missing-code'
       return
     }
 
@@ -42,19 +41,19 @@ export default function GoogleCallback() {
       .then((data) => {
         localStorage.setItem('spendwise-session', data.user.id)
         localStorage.setItem('spendwise-profile', JSON.stringify(data.user))
-        router.push('/dashboard')
+        window.location.href = '/dashboard'
       })
       .catch((err) => {
         setError(err.message || 'Failed to connect to server')
       })
-  }, [searchParams, router])
+  }, [searchParams])
 
   if (error) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-white">
         <div className="text-center">
           <p className="text-red-500 text-sm">{error}</p>
-          <button onClick={() => router.push('/login')} className="mt-4 text-violet-600 text-sm font-medium hover:underline">
+          <button onClick={() => { window.location.href = '/login' }} className="mt-4 text-violet-600 text-sm font-medium hover:underline">
             Back to login
           </button>
         </div>
