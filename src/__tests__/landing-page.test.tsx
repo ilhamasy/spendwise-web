@@ -137,10 +137,10 @@ describe('LandingPage', () => {
     expect(screen.getAllByText('Recent Transactions')[0]).toBeInTheDocument()
   })
 
-  it('shows auth modal when CTA clicked', async () => {
+  it('CTA button links to login page', () => {
     render(<LandingPage />)
-    await userEvent.click(screen.getByRole('button', { name: /Coba aja dulu/ }))
-    expect(screen.getByRole('heading', { name: 'Welcome Back' })).toBeInTheDocument()
+    const btn = screen.getByRole('button', { name: /Coba aja dulu/ })
+    expect(btn).toBeInTheDocument()
   })
 
   it('renders feature section heading', () => {

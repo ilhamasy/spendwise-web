@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, useReducer } from 'react'
+import { useEffect, useReducer } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import Image from 'next/image'
 import mockupImage from '@/assets/mockup-device.png'
-import AuthModal from '@/components/AuthModal'
 
 const MONEYTORY_DATA = [
   { name: 'Saving', value: 44, color: '#8b5cf6' },
@@ -22,7 +22,7 @@ const ANIMATED_WORDS = [
 
 export default function LandingPage() {
   const { user, isLoading } = useAuth()
-  const [showAuth, setShowAuth] = useState(false)
+  const router = useRouter()
 
   if (isLoading) {
     return (
@@ -61,7 +61,7 @@ export default function LandingPage() {
               <TypingAnimation words={ANIMATED_WORDS} loop />
             </p>
             <button
-              onClick={() => setShowAuth(true)}
+              onClick={() => router.push('/login')}
               className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-semibold text-white shadow-lg shadow-violet-500/25 transition-all hover:from-violet-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-violet-500/30 hover:scale-[1.02] active:scale-[0.98]"
             >
               Coba aja dulu, Gratis
@@ -203,7 +203,7 @@ export default function LandingPage() {
                 <span className="text-lg font-bold text-violet-600">SpendWise</span>
               </div>
               <div className="flex items-center gap-6 text-sm text-slate-500">
-                <button onClick={() => setShowAuth(true)} className="hover:text-violet-600 transition-colors">Sign In</button>
+                <button onClick={() => router.push('/login')} className="hover:text-violet-600 transition-colors">Sign In</button>
                 <span className="text-slate-300">|</span>
                 <span>Track every Rupiah. Spend Smarter.</span>
               </div>
@@ -214,8 +214,6 @@ export default function LandingPage() {
           </div>
         </div>
       </div>
-
-      <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
     </div>
   )
 }

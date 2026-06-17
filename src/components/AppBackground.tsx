@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 
-const AUTH_ROUTES = ['/']
+const AUTH_ROUTES = ['/', '/login', '/register']
 
 export default function AppBackground({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()

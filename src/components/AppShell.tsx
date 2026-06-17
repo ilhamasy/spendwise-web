@@ -6,7 +6,7 @@ import BottomNav from './BottomNav'
 import FAB from './FAB'
 import DataLoader from './DataLoader'
 
-const AUTH_ROUTES = ['/']
+const AUTH_ROUTES = ['/', '/login', '/register']
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
