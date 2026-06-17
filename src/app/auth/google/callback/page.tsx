@@ -1,16 +1,15 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 export default function GoogleCallback() {
   const searchParams = useSearchParams()
-  const [error, setError] = useState('')
-  const exchanged = useRef(false)
+  const redirected = useRef(false)
 
   useEffect(() => {
-    if (exchanged.current) return
-    exchanged.current = true
+    if (redirected.current) return
+    redirected.current = true
 
     const code = searchParams.get('code')
     if (!code) {
@@ -19,47 +18,8 @@ export default function GoogleCallback() {
     }
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
-
-    fetch(`${apiUrl}/api/v1/auth/google`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        code,
-        redirectUri: `${window.location.origin}/auth/google/callback`,
-      }),
-      credentials: 'include',
-    })
-      .then(async (res) => {
-        const body = await res.text()
-        if (!res.ok) {
-          let message = 'Google login failed'
-          try { message = JSON.parse(body).message || message } catch {}
-          throw new Error(message)
-        }
-        return JSON.parse(body)
-      })
-      .then((data) => {
-        localStorage.setItem('spendwise-session', data.user.id)
-        localStorage.setItem('spendwise-profile', JSON.stringify(data.user))
-        window.location.href = '/dashboard'
-      })
-      .catch((err) => {
-        setError(err.message || 'Failed to connect to server')
-      })
+    window.location.href = `${apiUrl}/api/v1/auth/google/callback?code=${encodeURIComponent(code)}&redirect_uri=${encodeURIComponent(window.location.origin + '/auth/google/callback')}`
   }, [searchParams])
-
-  if (error) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center bg-white">
-        <div className="text-center">
-          <p className="text-red-500 text-sm">{error}</p>
-          <button onClick={() => { window.location.href = '/login' }} className="mt-4 text-violet-600 text-sm font-medium hover:underline">
-            Back to login
-          </button>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-white">
