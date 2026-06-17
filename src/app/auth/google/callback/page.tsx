@@ -27,9 +27,14 @@ export default function GoogleCallback() {
       body: JSON.stringify({ code }),
       credentials: 'include',
     })
-      .then((res) => {
-        if (!res.ok) return res.json().then((err) => { throw new Error(err.message || 'Google login failed') })
-        return res.json()
+      .then(async (res) => {
+        const body = await res.text()
+        if (!res.ok) {
+          let message = 'Google login failed'
+          try { message = JSON.parse(body).message || message } catch {}
+          throw new Error(message)
+        }
+        return JSON.parse(body)
       })
       .then((data) => {
         localStorage.setItem('spendwise-session', data.user.id)
