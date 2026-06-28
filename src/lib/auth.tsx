@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { api, setAuthToken } from '@/lib/api'
+import { api } from '@/lib/api'
 import { syncManager } from '@/lib/sync-manager'
 
 interface AuthUser {
@@ -46,16 +46,12 @@ function saveUsers(users: StoredUser[]) {
 function setSession(userId: string, token?: string) {
   localStorage.setItem('spendwise-session', userId)
   if (token) {
-    localStorage.setItem('spendwise-token', token)
-    setAuthToken(token)
     document.cookie = `spendwise-token=${token}; path=/; max-age=604800; SameSite=Lax`
   }
 }
 
 function clearSession() {
   localStorage.removeItem('spendwise-session')
-  localStorage.removeItem('spendwise-token')
-  setAuthToken(null)
   document.cookie = 'spendwise-token=; path=/; max-age=0'
 }
 
@@ -69,21 +65,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem('spendwise-token')
-    if (token) setAuthToken(token)
-
     const sessionId = getSession()
     if (sessionId) {
       const storedProfile = localStorage.getItem('spendwise-profile')
       if (storedProfile) {
         const profile = JSON.parse(storedProfile)
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setUser({ id: profile.id, name: profile.name, email: profile.email })
       } else {
         const users = getUsers()
         const found = users.find((u) => u.id === sessionId)
         if (found) {
-           
           setUser({ id: found.id, name: found.name, email: found.email })
         }
       }

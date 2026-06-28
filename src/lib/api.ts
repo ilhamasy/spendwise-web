@@ -1,28 +1,11 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
-
-let authToken: string | null = null
-
-export function setAuthToken(token: string | null) {
-  authToken = token
-}
-
-export function getAuthToken(): string | null {
-  return authToken
-}
-
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
-  }
-  if (authToken) {
-    headers['Authorization'] = `Bearer ${authToken}`
-  }
-
-  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const res = await fetch(endpoint, {
     ...options,
     credentials: 'include',
-    headers,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string>),
+    },
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: res.statusText }))
