@@ -6,15 +6,25 @@ import { db } from '@/lib/db'
 
 const USER_KEY = 'spendwise-current-user'
 
+function getCookie(name: string) {
+  const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'))
+  return match ? decodeURIComponent(match[1]) : null
+}
+
+function setCookie(name: string, value: string, days: number) {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString()
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; expires=${expires}; SameSite=Lax`
+}
+
 export default function DataLoader({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
     async function load() {
-      const sessionId = localStorage.getItem('spendwise-session')
-      const storedUser = localStorage.getItem(USER_KEY)
+      const sessionId = getCookie('spendwise-session')
+      const storedUser = getCookie(USER_KEY)
       if (sessionId && storedUser !== sessionId) {
-        localStorage.setItem(USER_KEY, sessionId)
+        setCookie(USER_KEY, sessionId, 7)
         await db.transactions.clear()
         await db.categories.clear()
         await db.savingGoals.clear()
