@@ -7,8 +7,6 @@ vi.mock('@/lib/api', () => ({
     register: vi.fn(),
     sync: vi.fn(),
   },
-  setAuthToken: vi.fn(),
-  getAuthToken: () => null,
 }))
 
 vi.mock('@/lib/sync-manager', () => ({
@@ -20,8 +18,8 @@ vi.mock('@/lib/sync-manager', () => ({
     getStatus: () => 'idle',
     init: () => {},
     destroy: () => {},
-    onStatusChange: () => () => {},
-  },
+    onStatusChange: () => () => {}
+  }
 }))
 
 import '../lib/auth'
