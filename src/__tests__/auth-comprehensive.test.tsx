@@ -234,7 +234,7 @@ describe('AuthProvider - session restore', () => {
     localStorage.setItem('spendwise-users', JSON.stringify([
       { id: 'u1', name: 'Restored', email: 'restored@test.com', passwordHash: hash },
     ]))
-    localStorage.setItem('spendwise-session', 'u1')
+    document.cookie = 'spendwise-session=u1; path=/'
 
     const { AuthProvider, useAuth } = await import('@/lib/auth')
     let foundUser: { id?: string; name?: string } = {}
