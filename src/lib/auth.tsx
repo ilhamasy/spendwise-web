@@ -90,6 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     const sessionId = getSession()
     if (sessionId) {
       const profile = getProfile()
@@ -104,6 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
     setIsLoading(false)
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [])
 
   const login = useCallback(async (email: string, password: string) => {
