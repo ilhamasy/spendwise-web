@@ -31,7 +31,8 @@ describe('api.logout', () => {
         credentials: 'include',
       })
     )
-    const callHeaders = mockFetch.mock.calls[0][1]?.headers as Record<string, string>
+    const callArgs = mockFetch.mock.calls[0] as unknown as [string, RequestInit]
+    const callHeaders = (callArgs[1]?.headers ?? {}) as Record<string, string>
     expect(callHeaders['Content-Type']).toBe('application/json')
   })
 

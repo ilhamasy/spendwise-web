@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 
 vi.mock('next/image', () => ({
@@ -25,7 +25,7 @@ vi.mock('@/components/ToastProvider', () => ({
 describe('CategoryModal', () => {
   it('renders nothing when closed', async () => {
     const CategoryModal = (await import('@/components/CategoryModal')).default
-    const { container } = render(<CategoryModal open={false} onClose={vi.fn()} type="expense" />)
+    const { container } = render(<CategoryModal open={false} onClose={vi.fn()} onSave={vi.fn()} category={null} />)
     expect(container.innerHTML).toBe('')
   })
 })

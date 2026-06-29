@@ -80,7 +80,7 @@ describe('budget-service extended', () => {
     const { db } = await import('@/lib/db')
     const existing = { id: '1', name: 'old', amount: 100, period: 'monthly', categoryId: 'c1', createdAt: '', updatedAt: '' }
     vi.mocked(db.budgets.get).mockResolvedValue(existing)
-    vi.mocked(db.budgets.put).mockResolvedValue(undefined)
+    vi.mocked(db.budgets.put).mockResolvedValue(undefined as never)
     const result = await updateBudget('1', { name: 'new' })
     expect(result).toBeDefined()
     expect(result!.name).toBe('new')
@@ -165,7 +165,7 @@ describe('transaction-service extended', () => {
     const { db } = await import('@/lib/db')
     const txn = { id: '1', type: 'expense', amount: 50, categoryId: 'c1', occurredAt: '2025-01-01', note: '', createdAt: '', updatedAt: '' }
     vi.mocked(db.transactions.get).mockResolvedValue(txn)
-    vi.mocked(db.transactions.put).mockResolvedValue(undefined)
+    vi.mocked(db.transactions.put).mockResolvedValue(undefined as never)
     const result = await updateTransaction('1', { amount: 100 })
     expect(result).toBeDefined()
     expect(result!.amount).toBe(100)
