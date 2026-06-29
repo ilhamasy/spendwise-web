@@ -9,21 +9,19 @@ vi.mock('@/lib/api', () => ({
           entityType: 'transaction',
           entityId: 'tx-s1',
           data: { id: 'tx-s1', type: 'expense', amount: 500, categoryId: 'c1', occurredAt: '2026-01-01', note: '', createdAt: '', updatedAt: new Date().toISOString() },
-          timestamp: new Date().toISOString(),
+          timestamp: new Date().toISOString()
         },
         {
           entityType: 'category',
           entityId: 'cat-s1',
           data: { id: 'cat-s1', name: 'Synced', type: 'expense', icon: '📁', color: '#000', isDefault: false },
-          timestamp: new Date().toISOString(),
+          timestamp: new Date().toISOString()
         },
       ],
       newSyncTimestamp: new Date().toISOString(),
-      conflicts: [],
-    })),
+      conflicts: []
+    }))
   },
-  setAuthToken: () => {},
-  getAuthToken: () => null,
 }))
 
 beforeEach(async () => {
@@ -56,11 +54,11 @@ describe('SyncManager - Events', () => {
           entityType: 'category',
           entityId: 'cat-only',
           data: { id: 'cat-only', name: 'Cat', type: 'expense', icon: '📁', color: '#000', isDefault: false },
-          timestamp: '',
+          timestamp: ''
         },
       ],
       newSyncTimestamp: new Date().toISOString(),
-      conflicts: [],
+      conflicts: []
     })
 
     const { syncManager } = await import('@/lib/sync-manager')
@@ -95,7 +93,7 @@ describe('SyncManager - Queue management', () => {
       payload: { id: 'tx-clear' },
       timestamp: new Date().toISOString(),
       retries: 0,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date().toISOString()
     })
     expect(await db.syncQueue.count()).toBe(1)
     await syncManager.processQueue()
@@ -112,11 +110,11 @@ describe('SyncMerge - Category isDeleted', () => {
           entityType: 'category',
           entityId: 'cat-del',
           data: { id: 'cat-del', name: 'ToDelete', type: 'expense', icon: '🗑️', color: '#000', isDeleted: true },
-          timestamp: '',
+          timestamp: ''
         },
       ],
       newSyncTimestamp: new Date().toISOString(),
-      conflicts: [],
+      conflicts: []
     })
 
     const { syncManager } = await import('@/lib/sync-manager')

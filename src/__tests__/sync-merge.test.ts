@@ -8,11 +8,9 @@ vi.mock('@/lib/api', () => ({
         { entityType: 'category', entityId: 'cat-d1', data: { id: 'cat-d1', name: 'Deleted', type: 'expense', icon: '🗑️', color: '#000', isDeleted: true }, timestamp: '' },
       ],
       newSyncTimestamp: new Date().toISOString(),
-      conflicts: [],
-    })),
+      conflicts: []
+    }))
   },
-  setAuthToken: () => {},
-  getAuthToken: () => null,
 }))
 
 import { db } from '@/lib/db'
@@ -54,7 +52,7 @@ describe('SyncManager - Queue operations', () => {
     const { syncManager } = await import('@/lib/sync-manager')
     await syncManager.addToQueue({
       entityType: 'budget', entityId: 'b1', operation: 'CREATE',
-      payload: {}, timestamp: new Date().toISOString(),
+      payload: {}, timestamp: new Date().toISOString()
     })
     const items = await db.syncQueue.toArray()
     expect(items).toHaveLength(1)
@@ -66,7 +64,7 @@ describe('SyncManager - Queue operations', () => {
     const { syncManager } = await import('@/lib/sync-manager')
     await syncManager.addToQueue({
       entityType: 'transaction', entityId: 'tx-q1', operation: 'CREATE',
-      payload: { id: 'tx-q1' }, timestamp: new Date().toISOString(),
+      payload: { id: 'tx-q1' }, timestamp: new Date().toISOString()
     })
     expect(await db.syncQueue.count()).toBe(1)
     await syncManager.processQueue()

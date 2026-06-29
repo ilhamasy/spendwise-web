@@ -5,10 +5,8 @@ vi.mock('@/lib/api', () => ({
   api: {
     sync: vi.fn(),
     login: vi.fn(),
-    register: vi.fn(),
+    register: vi.fn()
   },
-  setAuthToken: vi.fn(),
-  getAuthToken: () => null,
 }))
 
 import { db } from '@/lib/db'
@@ -61,7 +59,7 @@ describe('SyncManager - addToQueue', () => {
       entityId: 'tx-abc',
       operation: 'CREATE',
       payload: { id: 'tx-abc', amount: 500 },
-      timestamp: '2026-06-01T00:00:00Z',
+      timestamp: '2026-06-01T00:00:00Z'
     })
     const items = await db.syncQueue.toArray()
     expect(items).toHaveLength(1)
@@ -77,16 +75,16 @@ describe('SyncManager - processQueue', () => {
     ;(api.sync as ReturnType<typeof vi.fn>).mockResolvedValue({
       serverChanges: [],
       newSyncTimestamp: new Date().toISOString(),
-      conflicts: [],
+      conflicts: []
     })
 
     await syncManager.addToQueue({
       entityType: 'transaction', entityId: 'tx-1', operation: 'CREATE',
-      payload: { id: 'tx-1' }, timestamp: new Date().toISOString(),
+      payload: { id: 'tx-1' }, timestamp: new Date().toISOString()
     })
     await syncManager.addToQueue({
       entityType: 'category', entityId: 'cat-1', operation: 'UPDATE',
-      payload: { id: 'cat-1' }, timestamp: new Date().toISOString(),
+      payload: { id: 'cat-1' }, timestamp: new Date().toISOString()
     })
 
     expect(await db.syncQueue.count()).toBe(2)
@@ -106,7 +104,7 @@ describe('SyncManager - processQueue', () => {
 
     await syncManager.addToQueue({
       entityType: 'transaction', entityId: 'tx-err', operation: 'CREATE',
-      payload: { id: 'tx-err' }, timestamp: new Date().toISOString(),
+      payload: { id: 'tx-err' }, timestamp: new Date().toISOString()
     })
 
     // Should not throw - error is caught internally
@@ -128,13 +126,13 @@ describe('SyncManager - pullChanges', () => {
           data: {
             id: 'tx-from-server', type: 'expense', amount: 999,
             categoryId: 'c1', occurredAt: '2026-01-01', note: 'from server',
-            createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+            createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
           },
-          timestamp: new Date().toISOString(),
+          timestamp: new Date().toISOString()
         },
       ],
       newSyncTimestamp: new Date().toISOString(),
-      conflicts: [],
+      conflicts: []
     })
 
     const before = await db.transactions.count()
@@ -186,7 +184,7 @@ describe('SyncManager - dedup handling', () => {
     ;(api.sync as ReturnType<typeof vi.fn>).mockResolvedValue({
       serverChanges: [],
       newSyncTimestamp: new Date().toISOString(),
-      conflicts: [],
+      conflicts: []
     })
     await syncManager.pullChanges()
     // Should not throw
@@ -199,26 +197,26 @@ describe('SyncManager - dedup handling', () => {
         {
           entityType: 'transaction', entityId: 'tx-m1',
           data: { id: 'tx-m1', type: 'expense', amount: 100, categoryId: 'c1', occurredAt: '2026-01-01', note: '', createdAt: '', updatedAt: '' },
-          timestamp: '',
+          timestamp: ''
         },
         {
           entityType: 'category', entityId: 'cat-m1',
           data: { id: 'cat-m1', name: 'Merged', type: 'expense', icon: '📁', color: '#000', isDefault: false },
-          timestamp: '',
+          timestamp: ''
         },
         {
           entityType: 'goal', entityId: 'goal-m1',
           data: { id: 'goal-m1', name: 'Merged Goal', targetAmount: 1000, currentSaved: 0, status: 'active', createdAt: '', updatedAt: '' },
-          timestamp: '',
+          timestamp: ''
         },
         {
           entityType: 'budget', entityId: 'bud-m1',
           data: { id: 'bud-m1', name: 'Merged Budget', amount: 1000, period: 'monthly', categoryId: 'c1', createdAt: '', updatedAt: '' },
-          timestamp: '',
+          timestamp: ''
         },
       ],
       newSyncTimestamp: new Date().toISOString(),
-      conflicts: [],
+      conflicts: []
     })
 
     await syncManager.pullChanges()

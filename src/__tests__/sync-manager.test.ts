@@ -5,13 +5,11 @@ vi.mock('@/lib/api', () => ({
     sync: () => Promise.resolve({
       serverChanges: [],
       newSyncTimestamp: new Date().toISOString(),
-      conflicts: [],
+      conflicts: []
     }),
     login: () => Promise.reject(new Error('offline')),
-    register: () => Promise.reject(new Error('offline')),
+    register: () => Promise.reject(new Error('offline'))
   },
-  setAuthToken: () => {},
-  getAuthToken: () => null,
 }))
 
 import { db } from '@/lib/db'
@@ -30,7 +28,7 @@ describe('SyncManager - Core', () => {
       entityId: 'tx-1',
       operation: 'CREATE',
       payload: { id: 'tx-1' },
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString()
     })
     const items = await db.syncQueue.toArray()
     expect(items).toHaveLength(1)
@@ -41,11 +39,11 @@ describe('SyncManager - Core', () => {
     const { syncManager } = await import('@/lib/sync-manager')
     await syncManager.addToQueue({
       entityType: 'transaction', entityId: 'tx-1', operation: 'CREATE',
-      payload: {}, timestamp: new Date().toISOString(),
+      payload: {}, timestamp: new Date().toISOString()
     })
     await syncManager.addToQueue({
       entityType: 'category', entityId: 'cat-1', operation: 'CREATE',
-      payload: {}, timestamp: new Date().toISOString(),
+      payload: {}, timestamp: new Date().toISOString()
     })
     const count = await syncManager.getPendingCount()
     expect(count).toBe(2)
@@ -68,7 +66,7 @@ describe('SyncManager - Core', () => {
     const { syncManager } = await import('@/lib/sync-manager')
     await syncManager.addToQueue({
       entityType: 'transaction', entityId: 'tx-1', operation: 'CREATE',
-      payload: { id: 'tx-1' }, timestamp: new Date().toISOString(),
+      payload: { id: 'tx-1' }, timestamp: new Date().toISOString()
     })
     await syncManager.processQueue()
     const count = await db.syncQueue.count()
@@ -107,15 +105,15 @@ describe('SyncManager - Queue dedup', () => {
     const { syncManager } = await import('@/lib/sync-manager')
     await syncManager.addToQueue({
       entityType: 'transaction', entityId: 't1', operation: 'CREATE',
-      payload: {}, timestamp: new Date().toISOString(),
+      payload: {}, timestamp: new Date().toISOString()
     })
     await syncManager.addToQueue({
       entityType: 'category', entityId: 'c1', operation: 'UPDATE',
-      payload: {}, timestamp: new Date().toISOString(),
+      payload: {}, timestamp: new Date().toISOString()
     })
     await syncManager.addToQueue({
       entityType: 'goal', entityId: 'g1', operation: 'DELETE',
-      payload: {}, timestamp: new Date().toISOString(),
+      payload: {}, timestamp: new Date().toISOString()
     })
     const items = await db.syncQueue.toArray()
     expect(items).toHaveLength(3)
