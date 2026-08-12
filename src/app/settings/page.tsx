@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth'
 import { useTheme } from '@/lib/theme'
 import { useRouter } from 'next/navigation'
 import { db } from '@/lib/db'
+import { syncManager } from '@/lib/sync-manager'
 import { Sun, Moon, Monitor, Download, Trash2, FileSpreadsheet } from 'lucide-react'
 import CategoryList from '@/components/CategoryList'
 import ConfirmDialog from '@/components/ConfirmDialog'
@@ -29,6 +30,7 @@ export default function SettingsPage() {
   // Delete account
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [logoutConfirm, setLogoutConfirm] = useState(false)
+  const [logoutMessage, setLogoutMessage] = useState('Are you sure you want to logout?')
 
   function handleSaveName() {
     if (displayName.trim() && user) {
@@ -125,8 +127,18 @@ export default function SettingsPage() {
     URL.revokeObjectURL(url)
   }
 
+  async function openLogoutConfirm() {
+    const pending = await syncManager.getPendingCount()
+    if (pending > 0) {
+      setLogoutMessage("There's a data transaction not saving online, Is you still logout?")
+    } else {
+      setLogoutMessage('Are you sure you want to logout?')
+    }
+    setLogoutConfirm(true)
+  }
+
   async function handleLogout() {
-    await logout()
+    await logout(true)
     window.location.href = '/'
   }
 
@@ -227,7 +239,7 @@ export default function SettingsPage() {
         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-muted-foreground">Account</h2>
           <div className="mt-3 flex flex-wrap gap-2">
-            <button onClick={() => setLogoutConfirm(true)}
+            <button onClick={openLogoutConfirm}
               className="rounded-lg border border-border px-4 py-2 text-xs font-medium text-foreground hover:bg-muted">
               Logout
             </button>
@@ -247,8 +259,8 @@ export default function SettingsPage() {
         confirmLabel="Delete Account" variant="danger" onConfirm={handleDeleteAccount} onCancel={() => setDeleteConfirm(false)} />
 
       <ConfirmDialog open={logoutConfirm} title="Logout"
-        message="Are you sure you want to logout?"
-        confirmLabel="Yes, Logout" onConfirm={handleLogout} onCancel={() => setLogoutConfirm(false)} />
+        message={logoutMessage}
+        confirmLabel="Yes" cancelLabel="No" variant="danger" onConfirm={handleLogout} onCancel={() => setLogoutConfirm(false)} />
     </div>
   )
 }

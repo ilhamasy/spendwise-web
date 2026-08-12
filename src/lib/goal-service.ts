@@ -29,11 +29,32 @@ export async function createGoal(input: CreateGoalInput): Promise<SavingGoal> {
     createdAt: now,
     updatedAt: now,
   }
+
+  let synced = false
+  if (typeof navigator !== 'undefined' && navigator.onLine) {
+    try {
+      const serverGoal = await api.createGoal({
+        name: input.name,
+        targetAmount: input.targetAmount,
+        currentSaved: 0,
+        targetDate: input.targetDate,
+      })
+      if (serverGoal && serverGoal.id) {
+        goal.id = serverGoal.id
+        synced = true
+      }
+    } catch {
+      // API failed, fallback to queue
+    }
+  }
+
   await db.savingGoals.add(goal)
-  await syncManager.addToQueue({
-    entityType: 'goal', entityId: goal.id, operation: 'CREATE',
-    payload: goal, timestamp: now,
-  })
+  if (!synced) {
+    await syncManager.addToQueue({
+      entityType: 'goal', entityId: goal.id, operation: 'CREATE',
+      payload: goal, timestamp: now,
+    })
+  }
   return goal
 }
 

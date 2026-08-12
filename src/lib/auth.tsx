@@ -15,7 +15,7 @@ interface AuthContextType {
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
   register: (name: string, email: string, password: string) => Promise<void>
-  logout: () => Promise<void>
+  logout: (force?: boolean) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -158,14 +158,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     saveUsers([...users, newUser])
   }, [])
 
-  const logout = useCallback(async () => {
-    let tries = 0
-    while (navigator.onLine && tries < 3) {
-      const pending = await syncManager.getPendingCount()
-      if (pending === 0) break
-      await syncManager.processQueue()
-      tries++
-      if (tries < 3) await new Promise((r) => setTimeout(r, 2000))
+  const logout = useCallback(async (force = false) => {
+    if (!force) {
+      let tries = 0
+      while (typeof navigator !== 'undefined' && navigator.onLine && tries < 3) {
+        const pending = await syncManager.getPendingCount()
+        if (pending === 0) break
+        await syncManager.processQueue()
+        tries++
+        if (tries < 3) await new Promise((r) => setTimeout(r, 2000))
+      }
     }
     clearSession()
     deleteCookie('spendwise-profile')

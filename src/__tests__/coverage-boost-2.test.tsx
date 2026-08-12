@@ -11,6 +11,8 @@ vi.mock('lucide-react', () => ({
   Search: () => <span>🔍</span>,
   Check: () => <span>✓</span>,
   ChevronDown: () => <span>▼</span>,
+  ChevronLeft: () => <span>←</span>,
+  ChevronRight: () => <span>→</span>,
 }))
 
 vi.mock('@/lib/category-service', () => ({
@@ -31,13 +33,6 @@ describe('CategoryModal', () => {
 })
 
 describe('DateRangePicker extended', () => {
-  beforeEach(() => {
-    vi.mock('lucide-react', () => ({
-      ChevronLeft: () => <span>←</span>,
-      ChevronRight: () => <span>→</span>,
-    }))
-  })
-
   it('selects start and end date to enable apply', async () => {
     const DateRangePicker = (await import('@/components/DateRangePicker')).default
     const onChange = vi.fn()

@@ -1,18 +1,27 @@
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(endpoint, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers as Record<string, string>),
-    },
-  })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: res.statusText }))
-    throw new Error(err.message || `HTTP ${res.status}`)
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('spendwise-loading-start'))
   }
-  if (res.status === 204) return {} as T
-  return res.json()
+  try {
+    const res = await fetch(endpoint, {
+      ...options,
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options.headers as Record<string, string>),
+      },
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: res.statusText }))
+      throw new Error(err.message || `HTTP ${res.status}`)
+    }
+    if (res.status === 204) return {} as T
+    return res.json()
+  } finally {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('spendwise-loading-end'))
+    }
+  }
 }
 
 export const api = {

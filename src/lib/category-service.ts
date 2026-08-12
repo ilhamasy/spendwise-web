@@ -60,11 +60,32 @@ export async function createCategory(
     isDefault: false,
     status: 'active',
   }
+
+  let synced = false
+  if (typeof navigator !== 'undefined' && navigator.onLine) {
+    try {
+      const serverCat = await api.createCategory({
+        name: input.name,
+        type: input.type,
+        icon: input.icon,
+        color: input.color,
+      })
+      if (serverCat && serverCat.id) {
+        category.id = serverCat.id
+        synced = true
+      }
+    } catch {
+      // API failed, fallback to local ID + sync queue
+    }
+  }
+
   await db.categories.add(category)
-  await syncManager.addToQueue({
-    entityType: 'category', entityId: category.id, operation: 'CREATE',
-    payload: category, timestamp: new Date().toISOString(),
-  })
+  if (!synced) {
+    await syncManager.addToQueue({
+      entityType: 'category', entityId: category.id, operation: 'CREATE',
+      payload: category, timestamp: new Date().toISOString(),
+    })
+  }
   return category
 }
 

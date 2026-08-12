@@ -73,17 +73,17 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
         </div>
       )}
 
-      {!isOffline && status === 'syncing' && (
-        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-2 bg-blue-500 px-4 py-2 text-xs font-medium text-white">
-          <RefreshCw className="h-3 w-3 animate-spin" />
-          Syncing{pendingCount > 0 ? ` (${pendingCount} pending)` : '...'}
+      {!isOffline && status === 'syncing' && pendingCount > 0 && (
+        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-2 bg-primary px-4 py-2 text-xs font-medium text-white shadow-md">
+          <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+          Syncing {pendingCount} {pendingCount === 1 ? 'item' : 'items'}...
         </div>
       )}
 
       {!isOffline && status === 'idle' && pendingCount > 0 && (
-        <div className="fixed top-4 right-4 z-50 flex items-center gap-1 rounded-full bg-emerald-500 px-3 py-1 text-[10px] font-medium text-white shadow-lg">
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-1.5 rounded-full bg-amber-500/90 backdrop-blur-sm px-3 py-1 text-[10px] font-medium text-white shadow-lg">
           <Cloud className="h-3 w-3" />
-          Synced
+          {pendingCount} Pending Sync
         </div>
       )}
 
