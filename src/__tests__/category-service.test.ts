@@ -37,7 +37,7 @@ describe('seedDefaultCategories', () => {
     await seedDefaultCategories()
     await seedDefaultCategories()
     const all = await getAllCategories()
-    expect(all.length).toBe(13) // 5 income + 8 expense defaults
+    expect(all.length).toBe(14) // 5 income + 9 expense defaults
   })
 
   it('all seeded categories are marked as default', async () => {

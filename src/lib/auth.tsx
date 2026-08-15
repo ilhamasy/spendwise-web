@@ -55,7 +55,7 @@ function getCookie(name: string): string | null {
 }
 
 function deleteCookie(name: string) {
-  document.cookie = `${name}=; path=/; max-age=0`
+  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0`
 }
 
 function setSession(userId: string, token?: string) {
@@ -68,6 +68,9 @@ function setSession(userId: string, token?: string) {
 function clearSession() {
   deleteCookie('spendwise-session')
   deleteCookie('spendwise-token')
+  deleteCookie('spendwise-access-token')
+  deleteCookie('spendwise-refresh-token')
+  deleteCookie('spendwise-profile')
   localStorage.removeItem('spendwise-users')
 }
 
@@ -158,22 +161,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     saveUsers([...users, newUser])
   }, [])
 
-  const logout = useCallback(async (force = false) => {
-    if (!force) {
-      let tries = 0
-      while (typeof navigator !== 'undefined' && navigator.onLine && tries < 3) {
-        const pending = await syncManager.getPendingCount()
-        if (pending === 0) break
-        await syncManager.processQueue()
-        tries++
-        if (tries < 3) await new Promise((r) => setTimeout(r, 2000))
-      }
-    }
+  const logout = useCallback(async (_force = false) => {
     clearSession()
-    deleteCookie('spendwise-profile')
     localStorage.removeItem('spendwise-sync-meta')
     syncManager.destroy()
     setUser(null)
+    api.logout().catch(() => {})
   }, [])
 
   return (

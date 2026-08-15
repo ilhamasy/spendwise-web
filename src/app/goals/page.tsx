@@ -121,9 +121,9 @@ export default function GoalsPage() {
 
     if (contribDebit) {
       const cats = await getAllCategories('expense')
-      let savingCat = cats.find((c) => c.name === 'Saving')
+      let savingCat = cats.find((c) => c.name === 'Savings' || c.name === 'Saving')
       if (!savingCat) {
-        savingCat = await createCategory({ name: 'Saving', type: 'expense', icon: '💰', color: '#8b5cf6' })
+        savingCat = await createCategory({ name: 'Savings', type: 'expense', icon: '💰', color: '#8b5cf6' })
       }
       await createTransaction({
         type: 'expense',

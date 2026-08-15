@@ -46,7 +46,9 @@ export default function RecentTransactionsTable() {
     return () => window.removeEventListener('transaction-updated', handler)
   }, [])
 
-  const getCat = (id: string) => categories.find((c) => c.id === id)
+  const getCat = (id: string) =>
+    categories.find((c) => c.id === id || c.name.toLowerCase() === id.toLowerCase()) ||
+    categories.find((c) => id.toLowerCase().includes(c.name.toLowerCase()))
 
   if (!loaded) {
     return (
