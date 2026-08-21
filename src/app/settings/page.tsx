@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useAuth } from '@/lib/auth'
 import { useTheme } from '@/lib/theme'
-import { useRouter } from 'next/navigation'
 import { db } from '@/lib/db'
 import { syncManager } from '@/lib/sync-manager'
 import { Sun, Moon, Monitor, Download, Trash2, FileSpreadsheet } from 'lucide-react'
@@ -13,7 +12,6 @@ import ConfirmDialog from '@/components/ConfirmDialog'
 export default function SettingsPage() {
   const { user, logout } = useAuth()
   const { theme, setTheme } = useTheme()
-  const router = useRouter()
 
   const [displayName, setDisplayName] = useState(user?.name || '')
   const [nameSaved, setNameSaved] = useState(false)

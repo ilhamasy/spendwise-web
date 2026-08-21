@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
-import { Wifi, WifiOff } from 'lucide-react'
+import { WifiOff } from 'lucide-react'
 
 export default function ConnectivityStatus() {
   const pathname = usePathname()
@@ -13,6 +13,7 @@ export default function ConnectivityStatus() {
   const wasOnlineRef = useRef(true)
 
   useEffect(() => {
+    /* eslint-disable-next-line react-hooks/set-state-in-effect */
     setIsOnline(navigator.onLine)
     wasOnlineRef.current = navigator.onLine
 

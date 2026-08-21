@@ -162,6 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const logout = useCallback(async (_force = false) => {
+    void _force
     clearSession()
     localStorage.removeItem('spendwise-sync-meta')
     syncManager.destroy()
