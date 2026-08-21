@@ -2,6 +2,7 @@ import { db } from './db'
 import type { Category } from '@/types'
 import { generateId } from './utils'
 import { syncManager } from './sync-manager'
+import { api } from './api'
 
 const DEFAULT_INCOME_CATEGORIES: Omit<Category, 'id'>[] = [
   { name: 'Salary', type: 'income', icon: '💼', color: '#22c55e', isDefault: true },

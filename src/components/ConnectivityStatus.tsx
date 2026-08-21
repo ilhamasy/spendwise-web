@@ -6,17 +6,13 @@ import { WifiOff } from 'lucide-react'
 
 export default function ConnectivityStatus() {
   const pathname = usePathname()
-  const [isOnline, setIsOnline] = useState(true)
+  const [isOnline, setIsOnline] = useState(() => (typeof navigator !== 'undefined' ? navigator.onLine : true))
   const [showOfflineModal, setShowOfflineModal] = useState(false)
   const [countdown, setCountdown] = useState(30)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const wasOnlineRef = useRef(true)
+  const wasOnlineRef = useRef(typeof navigator !== 'undefined' ? navigator.onLine : true)
 
   useEffect(() => {
-    /* eslint-disable-next-line react-hooks/set-state-in-effect */
-    setIsOnline(navigator.onLine)
-    wasOnlineRef.current = navigator.onLine
-
     const handleOnline = () => {
       setIsOnline(true)
       wasOnlineRef.current = true
