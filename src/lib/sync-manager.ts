@@ -68,19 +68,23 @@ class SyncManager {
     await this.pullChanges()
   }
 
+  private hasAuthToken(): boolean {
+    if (typeof document === 'undefined') return false
+    return /(?:^|; )(?:spendwise-access-token|spendwise-token|spendwise-session)=/.test(document.cookie)
+  }
+
   async processQueue(): Promise<void> {
     if (!navigator.onLine || this.syncInProgress) return
+    const items = await db.syncQueue.orderBy('createdAt').toArray()
+    if (items.length === 0) {
+      this.setStatus('idle')
+      return
+    }
+
     this.syncInProgress = true
     this.setStatus('syncing')
 
     try {
-      const items = await db.syncQueue.orderBy('createdAt').toArray()
-      if (items.length === 0) {
-        this.setStatus('idle')
-        this.syncInProgress = false
-        return
-      }
-
       const changes = items.map((item) => ({
         entityType: item.entityType,
         entityId: item.entityId,
@@ -113,7 +117,6 @@ class SyncManager {
   async pullChanges(): Promise<void> {
     if (!navigator.onLine || this.syncInProgress) return
     this.syncInProgress = true
-    this.setStatus('syncing')
 
     try {
       const meta = this.getMeta()

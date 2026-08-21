@@ -2,6 +2,7 @@ import { db } from './db'
 import type { Category } from '@/types'
 import { generateId } from './utils'
 import { syncManager } from './sync-manager'
+import { api } from './api'
 
 const DEFAULT_INCOME_CATEGORIES: Omit<Category, 'id'>[] = [
   { name: 'Salary', type: 'income', icon: '💼', color: '#22c55e', isDefault: true },
@@ -19,18 +20,34 @@ const DEFAULT_EXPENSE_CATEGORIES: Omit<Category, 'id'>[] = [
   { name: 'Entertainment', type: 'expense', icon: '🎬', color: '#a855f7', isDefault: true },
   { name: 'Health', type: 'expense', icon: '🏥', color: '#14b8a6', isDefault: true },
   { name: 'Education', type: 'expense', icon: '📚', color: '#eab308', isDefault: true },
+  { name: 'Savings', type: 'expense', icon: '💰', color: '#8b5cf6', isDefault: true },
   { name: 'Other', type: 'expense', icon: '📦', color: '#78716c', isDefault: true },
 ]
 
 export async function seedDefaultCategories(): Promise<void> {
-  const count = await db.categories.count()
-  if (count > 0) return
-
-  const categories: Category[] = [
-    ...DEFAULT_INCOME_CATEGORIES.map((c) => ({ ...c, id: generateId(), status: 'active' as const })),
-    ...DEFAULT_EXPENSE_CATEGORIES.map((c) => ({ ...c, id: generateId(), status: 'active' as const })),
+  const existing = await db.categories.toArray()
+  const allDefaults = [
+    ...DEFAULT_INCOME_CATEGORIES,
+    ...DEFAULT_EXPENSE_CATEGORIES,
   ]
-  await db.categories.bulkAdd(categories)
+
+  const toAdd: Category[] = []
+  for (const def of allDefaults) {
+    const found = existing.find(
+      (c) => c.name.toLowerCase() === def.name.toLowerCase() && c.type === def.type
+    )
+    if (!found) {
+      toAdd.push({
+        ...def,
+        id: generateId(),
+        status: 'active',
+      })
+    }
+  }
+
+  if (toAdd.length > 0) {
+    await db.categories.bulkAdd(toAdd)
+  }
 }
 
 export async function getAllCategories(type?: 'income' | 'expense'): Promise<Category[]> {
@@ -42,7 +59,19 @@ export async function getAllCategories(type?: 'income' | 'expense'): Promise<Cat
 }
 
 export async function getCategoryById(id: string): Promise<Category | undefined> {
-  return db.categories.get(id)
+  if (!id) return undefined
+  const direct = await db.categories.get(id)
+  if (direct) return direct
+
+  const all = await db.categories.toArray()
+  const matchByName = all.find(
+    (c) => c.id === id || c.name.toLowerCase() === id.toLowerCase()
+  )
+  if (matchByName) return matchByName
+
+  return all.find(
+    (c) => id.toLowerCase().includes(c.name.toLowerCase()) || c.name.toLowerCase().includes(id.toLowerCase())
+  )
 }
 
 export async function createCategory(
@@ -60,11 +89,32 @@ export async function createCategory(
     isDefault: false,
     status: 'active',
   }
+
+  let synced = false
+  if (typeof navigator !== 'undefined' && navigator.onLine) {
+    try {
+      const serverCat = await api.createCategory({
+        name: input.name,
+        type: input.type,
+        icon: input.icon,
+        color: input.color,
+      })
+      if (serverCat && serverCat.id) {
+        category.id = serverCat.id
+        synced = true
+      }
+    } catch {
+      // API failed, fallback to local ID + sync queue
+    }
+  }
+
   await db.categories.add(category)
-  await syncManager.addToQueue({
-    entityType: 'category', entityId: category.id, operation: 'CREATE',
-    payload: category, timestamp: new Date().toISOString(),
-  })
+  if (!synced) {
+    await syncManager.addToQueue({
+      entityType: 'category', entityId: category.id, operation: 'CREATE',
+      payload: category, timestamp: new Date().toISOString(),
+    })
+  }
   return category
 }
 

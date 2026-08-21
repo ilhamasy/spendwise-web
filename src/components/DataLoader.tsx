@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { syncManager } from '@/lib/sync-manager'
 import { db } from '@/lib/db'
+import { seedDefaultCategories } from '@/lib/category-service'
 
 const USER_KEY = 'spendwise-current-user'
 
@@ -33,6 +34,7 @@ export default function DataLoader({ children }: { children: React.ReactNode }) 
         await db.syncQueue.clear()
       }
 
+      await seedDefaultCategories()
       await deduplicateTransactions()
       await deduplicateGoals()
       await deduplicateBudgets()

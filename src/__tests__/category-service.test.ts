@@ -9,10 +9,18 @@ vi.mock('@/lib/sync-manager', () => ({
   },
 }))
 
+vi.mock('@/lib/api', () => ({
+  api: {
+    createCategory: vi.fn(() => Promise.resolve({ id: 'server-cat-123' })),
+  },
+}))
+
 import {
   getAllCategories,
+  getCategoryById,
   seedDefaultCategories,
   createCategory,
+  updateCategory,
   deleteCategory,
 } from '@/lib/category-service'
 
@@ -37,7 +45,7 @@ describe('seedDefaultCategories', () => {
     await seedDefaultCategories()
     await seedDefaultCategories()
     const all = await getAllCategories()
-    expect(all.length).toBe(13) // 5 income + 8 expense defaults
+    expect(all.length).toBe(14) // 5 income + 9 expense defaults
   })
 
   it('all seeded categories are marked as default', async () => {
@@ -47,8 +55,33 @@ describe('seedDefaultCategories', () => {
   })
 })
 
+describe('getCategoryById', () => {
+  it('returns undefined for empty id', async () => {
+    const res = await getCategoryById('')
+    expect(res).toBeUndefined()
+  })
+
+  it('retrieves category by exact ID', async () => {
+    const cat = await createCategory({ name: 'Gadgets', type: 'expense' })
+    const found = await getCategoryById(cat.id)
+    expect(found?.name).toBe('Gadgets')
+  })
+
+  it('retrieves category by case-insensitive name fallback', async () => {
+    await createCategory({ name: 'Salary', type: 'income' })
+    const found = await getCategoryById('salary')
+    expect(found?.name).toBe('Salary')
+  })
+
+  it('retrieves category by partial name fallback', async () => {
+    await createCategory({ name: 'Entertainment', type: 'expense' })
+    const found = await getCategoryById('Entertain')
+    expect(found?.name).toBe('Entertainment')
+  })
+})
+
 describe('createCategory', () => {
-  it('creates a non-default custom category', async () => {
+  it('creates a non-default custom category offline', async () => {
     const cat = await createCategory({
       name: 'Subscription',
       type: 'expense',
@@ -60,9 +93,40 @@ describe('createCategory', () => {
     expect(cat.isDefault).toBe(false)
     expect(cat.name).toBe('Subscription')
   })
+
+  it('returns existing category if already present with same name and type', async () => {
+    const first = await createCategory({ name: 'Bills', type: 'expense' })
+    const second = await createCategory({ name: 'Bills', type: 'expense' })
+    expect(second.id).toBe(first.id)
+  })
+
+  it('uses server ID when online', async () => {
+    Object.defineProperty(navigator, 'onLine', { value: true, configurable: true })
+    const cat = await createCategory({ name: 'OnlineCat', type: 'income' })
+    expect(cat.id).toBeTruthy()
+  })
+})
+
+describe('updateCategory', () => {
+  it('updates an existing category', async () => {
+    const cat = await createCategory({ name: 'Tech', type: 'expense' })
+    const updated = await updateCategory(cat.id, { name: 'Tech & Gadgets', color: '#00ff00' })
+    expect(updated?.name).toBe('Tech & Gadgets')
+    expect(updated?.color).toBe('#00ff00')
+  })
+
+  it('returns undefined when updating non-existent category', async () => {
+    const res = await updateCategory('non-existent', { name: 'Test' })
+    expect(res).toBeUndefined()
+  })
 })
 
 describe('deleteCategory', () => {
+  it('returns false for non-existent category', async () => {
+    const res = await deleteCategory('non-existent')
+    expect(res).toBe(false)
+  })
+
   it('prevents deleting default categories', async () => {
     await seedDefaultCategories()
     const all = await getAllCategories()

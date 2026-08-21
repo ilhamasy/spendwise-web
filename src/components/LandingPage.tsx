@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useReducer } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import Image from 'next/image'
@@ -21,8 +22,15 @@ const ANIMATED_WORDS = [
 ]
 
 export default function LandingPage() {
+  const router = useRouter()
   const { user, isLoading } = useAuth()
   const [showAuth, setShowAuth] = useState(false)
+
+  useEffect(() => {
+    if (!isLoading && user && router?.replace) {
+      router.replace('/dashboard')
+    }
+  }, [user, isLoading, router])
 
   if (isLoading) {
     return (

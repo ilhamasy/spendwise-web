@@ -1,18 +1,29 @@
-async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(endpoint, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers as Record<string, string>),
-    },
-  })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: res.statusText }))
-    throw new Error(err.message || `HTTP ${res.status}`)
+async function request<T>(endpoint: string, options: (RequestInit & { silent?: boolean }) = {}): Promise<T> {
+  const { silent, ...fetchOptions } = options
+  const showOverlay = !silent && typeof window !== 'undefined'
+  if (showOverlay) {
+    window.dispatchEvent(new CustomEvent('spendwise-loading-start'))
   }
-  if (res.status === 204) return {} as T
-  return res.json()
+  try {
+    const res = await fetch(endpoint, {
+      ...fetchOptions,
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(fetchOptions.headers as Record<string, string>),
+      },
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: res.statusText }))
+      throw new Error(err.message || `HTTP ${res.status}`)
+    }
+    if (res.status === 204) return {} as T
+    return res.json()
+  } finally {
+    if (showOverlay) {
+      window.dispatchEvent(new CustomEvent('spendwise-loading-end'))
+    }
+  }
 }
 
 export const api = {
@@ -29,7 +40,7 @@ export const api = {
     ),
 
   logout: () =>
-    request<{ message: string }>('/api/v1/auth/logout', { method: 'POST' }),
+    request<{ message: string }>('/api/v1/auth/logout', { method: 'POST', silent: true }),
 
   createTransaction: (data: { type: string; amount: number; categoryId: string; occurredAt: string; note?: string }) =>
     request<{ id: string }>('/api/v1/transactions', { method: 'POST', body: JSON.stringify(data) }),
@@ -49,9 +60,10 @@ export const api = {
   createCategory: (data: { name: string; type: string; icon?: string; color?: string }) =>
     request<{ id: string }>('/api/v1/categories', { method: 'POST', body: JSON.stringify(data) }),
 
-  sync: (lastSyncTimestamp: string, changes: unknown[]) =>
+  sync: (lastSyncTimestamp: string, changes: unknown[], silent: boolean = true) =>
     request<import('@/lib/sync-types').DataSyncResponse>('/api/v1/sync', {
       method: 'POST',
       body: JSON.stringify({ lastSyncTimestamp, changes }),
+      silent,
     }),
 }

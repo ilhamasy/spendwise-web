@@ -5,6 +5,7 @@ import AuthGuard from './AuthGuard'
 import BottomNav from './BottomNav'
 import FAB from './FAB'
 import DataLoader from './DataLoader'
+import ConnectivityStatus from './ConnectivityStatus'
 
 const AUTH_ROUTES = ['/']
 
@@ -20,6 +21,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <AuthGuard>
       <DataLoader>
         <div className="flex min-h-dvh flex-col">
+          <ConnectivityStatus />
           <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-24 safe-top">
             {children}
           </main>
