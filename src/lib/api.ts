@@ -1,4 +1,16 @@
+export function isSafeApiEndpoint(endpoint: string): boolean {
+  if (!endpoint) return false
+  if (endpoint.startsWith('/') || endpoint.startsWith('./')) return true
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+  if (baseUrl && endpoint.startsWith(baseUrl)) return true
+  return false
+}
+
 async function request<T>(endpoint: string, options: (RequestInit & { silent?: boolean }) = {}): Promise<T> {
+  if (!isSafeApiEndpoint(endpoint)) {
+    throw new Error('SSRF Protection: Invalid or untrusted API endpoint')
+  }
+
   const { silent, ...fetchOptions } = options
   const showOverlay = !silent && typeof window !== 'undefined'
   if (showOverlay) {
