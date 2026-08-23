@@ -29,3 +29,14 @@ export function isFutureOrToday(dateString: string): boolean {
   targetDate.setHours(0, 0, 0, 0)
   return targetDate >= today
 }
+
+export function validatePasswordStrength(password: string): { valid: boolean; message?: string } {
+  if (!password || password.trim().length < 8) {
+    return { valid: false, message: 'Password must be at least 8 characters long' }
+  }
+  const weakList = ['12345678', 'password', 'admin123', 'spendwise', 'qwertyui']
+  if (weakList.includes(password.trim().toLowerCase())) {
+    return { valid: false, message: 'Password is too common or weak' }
+  }
+  return { valid: true }
+}
