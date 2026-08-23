@@ -6,6 +6,14 @@ type StatusListener = (status: SyncStatus) => void
 
 const SYNC_META_KEY = 'spendwise-sync-meta'
 
+export function validateSyncPayloadIntegrity(item: Partial<SyncQueueItem>): boolean {
+  if (!item || typeof item !== 'object') return false
+  if (!item.operation || !['CREATE', 'UPDATE', 'DELETE'].includes(item.operation)) return false
+  if (!item.entityType || !['transaction', 'category', 'budget', 'goal'].includes(item.entityType)) return false
+  if (!item.entityId || typeof item.entityId !== 'string') return false
+  return true
+}
+
 class SyncManager {
   private syncInProgress = false
   private maxRetries = 3
