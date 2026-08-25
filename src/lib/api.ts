@@ -6,36 +6,27 @@ export function isSafeApiEndpoint(endpoint: string): boolean {
   return false
 }
 
-async function request<T>(endpoint: string, options: (RequestInit & { silent?: boolean }) = {}): Promise<T> {
+async function request<T>(endpoint: string, options: RequestInit & { silent?: boolean } = {}): Promise<T> {
   if (!isSafeApiEndpoint(endpoint)) {
     throw new Error('SSRF Protection: Invalid or untrusted API endpoint')
   }
 
-  const { silent, ...fetchOptions } = options
-  const showOverlay = !silent && typeof window !== 'undefined'
-  if (showOverlay) {
-    window.dispatchEvent(new CustomEvent('spendwise-loading-start'))
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { silent: _silent, ...fetchOptions } = options
+  const res = await fetch(endpoint, {
+    ...fetchOptions,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(fetchOptions.headers as Record<string, string>),
+    },
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: res.statusText }))
+    throw new Error(err.message || `HTTP ${res.status}`)
   }
-  try {
-    const res = await fetch(endpoint, {
-      ...fetchOptions,
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(fetchOptions.headers as Record<string, string>),
-      },
-    })
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ message: res.statusText }))
-      throw new Error(err.message || `HTTP ${res.status}`)
-    }
-    if (res.status === 204) return {} as T
-    return res.json()
-  } finally {
-    if (showOverlay) {
-      window.dispatchEvent(new CustomEvent('spendwise-loading-end'))
-    }
-  }
+  if (res.status === 204) return {} as T
+  return res.json()
 }
 
 export const api = {
