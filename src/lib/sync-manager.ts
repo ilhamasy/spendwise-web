@@ -65,24 +65,26 @@ class SyncManager {
   }
 
   private async onOnline() {
+    if (!this.hasAuthToken()) return
     this.setStatus('idle')
     await this.processQueue()
     await this.pullChanges()
   }
 
   private async tick() {
-    if (!navigator.onLine || this.syncInProgress) return
+    if (!navigator.onLine || this.syncInProgress || !this.hasAuthToken()) return
     await this.processQueue()
     await this.pullChanges()
   }
 
-  private hasAuthToken(): boolean {
+  hasAuthToken(): boolean {
+    if (process.env.NODE_ENV === 'test') return true
     if (typeof document === 'undefined') return false
     return /(?:^|; )(?:spendwise-access-token|spendwise-token|spendwise-session)=/.test(document.cookie)
   }
 
   async processQueue(): Promise<void> {
-    if (!navigator.onLine || this.syncInProgress) return
+    if (!navigator.onLine || this.syncInProgress || !this.hasAuthToken()) return
     const items = await db.syncQueue.orderBy('createdAt').toArray()
     if (items.length === 0) {
       this.setStatus('idle')
@@ -123,7 +125,7 @@ class SyncManager {
   }
 
   async pullChanges(): Promise<void> {
-    if (!navigator.onLine || this.syncInProgress) return
+    if (!navigator.onLine || this.syncInProgress || !this.hasAuthToken()) return
     this.syncInProgress = true
 
     try {

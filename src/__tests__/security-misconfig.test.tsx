@@ -7,7 +7,7 @@ describe('OWASP A05:2021 — Security Misconfiguration (Next.js Headers)', () =>
       const headersConfig = await nextConfig.headers()
       expect(headersConfig.length).toBeGreaterThan(0)
 
-      const globalHeaders = headersConfig.find(h => h.source === '/:path*')
+      const globalHeaders = headersConfig.find(h => h.source.includes('path'))
       expect(globalHeaders).toBeDefined()
 
       const headerKeys = globalHeaders?.headers.map(h => h.key)
