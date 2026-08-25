@@ -1,12 +1,17 @@
 import type { NextConfig } from "next";
 
+const allowedOrigins = process.env.ALLOWED_DEV_ORIGINS
+  ? process.env.ALLOWED_DEV_ORIGINS.split(',').map((s) => s.trim())
+  : ['localhost', '127.0.0.1', '192.168.1.18', '192.168.1.31']
+
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ['localhost', '127.0.0.1', '192.168.1.18', '192.168.1.31'],
+  allowedDevOrigins: allowedOrigins,
   async rewrites() {
+    const backendUrl = process.env.BACKEND_INTERNAL_URL || 'http://127.0.0.1:8080'
     return [
       {
         source: '/api/:path*',
-        destination: 'http://127.0.0.1:8080/api/:path*',
+        destination: `${backendUrl}/api/:path*`,
       },
     ]
   },
