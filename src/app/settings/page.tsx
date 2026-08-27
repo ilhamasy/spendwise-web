@@ -35,8 +35,16 @@ export default function SettingsPage() {
     typeof window !== 'undefined' && !!window.__swInstallPrompt,
   )
   const [installed, setInstalled] = useState(false)
+  const [isRunningAsPWA, setIsRunningAsPWA] = useState(false)
 
   useEffect(() => {
+    // Detect if already running as installed PWA
+    const standalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.matchMedia('(display-mode: fullscreen)').matches ||
+      (window.navigator as { standalone?: boolean }).standalone === true
+    setIsRunningAsPWA(standalone)
+
     const onAvailable = () => setInstallAvailable(true)
     window.addEventListener('spendwise-install-available', onAvailable)
     return () => window.removeEventListener('spendwise-install-available', onAvailable)
@@ -257,8 +265,8 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Install App */}
-        {(installAvailable || installed) && (
+        {/* Install App — only shown in browser, hidden when running as PWA */}
+        {!isRunningAsPWA && (installAvailable || installed) && (
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <h2 className="text-sm font-semibold text-muted-foreground">Install App</h2>
             <div className="mt-3">
