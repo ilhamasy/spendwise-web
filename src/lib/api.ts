@@ -48,6 +48,12 @@ export const api = {
   createTransaction: (data: { type: string; amount: number; categoryId: string; occurredAt: string; note?: string }) =>
     request<{ id: string }>('/api/v1/transactions', { method: 'POST', body: JSON.stringify(data) }),
 
+  updateTransaction: (id: string, data: { type?: string; amount?: number; categoryId?: string; occurredAt?: string; note?: string }) =>
+    request<{ id: string }>('/api/v1/transactions/' + id, { method: 'PUT', body: JSON.stringify(data) }),
+
+  deleteTransaction: (id: string) =>
+    request<void>('/api/v1/transactions/' + id, { method: 'DELETE' }),
+
   createGoal: (data: { name: string; targetAmount: number; currentSaved?: number; targetDate?: string }) =>
     request<{ id: string }>('/api/v1/goals', { method: 'POST', body: JSON.stringify(data) }),
 
