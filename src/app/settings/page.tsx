@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth'
 import { useTheme } from '@/lib/theme'
 import { db } from '@/lib/db'
 import { syncManager } from '@/lib/sync-manager'
-import { Sun, Moon, Monitor, Download, Trash2, FileSpreadsheet } from 'lucide-react'
+import { Sun, Moon, Monitor, Download, Trash2, FileSpreadsheet, Smartphone } from 'lucide-react'
 import CategoryList from '@/components/CategoryList'
 import ConfirmDialog from '@/components/ConfirmDialog'
 
@@ -29,6 +29,18 @@ export default function SettingsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [logoutConfirm, setLogoutConfirm] = useState(false)
   const [logoutMessage, setLogoutMessage] = useState('Are you sure you want to logout?')
+
+  // PWA install
+  const [installAvailable, setInstallAvailable] = useState(
+    typeof window !== 'undefined' && !!window.__swInstallPrompt,
+  )
+  const [installed, setInstalled] = useState(false)
+
+  useEffect(() => {
+    const onAvailable = () => setInstallAvailable(true)
+    window.addEventListener('spendwise-install-available', onAvailable)
+    return () => window.removeEventListener('spendwise-install-available', onAvailable)
+  }, [])
 
   function handleSaveName() {
     if (displayName.trim() && user) {
@@ -123,6 +135,18 @@ export default function SettingsPage() {
     a.download = filename
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  async function handleInstallPWA() {
+    const prompt = window.__swInstallPrompt
+    if (!prompt) return
+    prompt.prompt()
+    const result = await prompt.userChoice
+    if (result.outcome === 'accepted') {
+      setInstalled(true)
+      setInstallAvailable(false)
+      window.__swInstallPrompt = undefined
+    }
   }
 
   async function openLogoutConfirm() {
@@ -232,6 +256,40 @@ export default function SettingsPage() {
             </button>
           </div>
         </div>
+
+        {/* Install App */}
+        {(installAvailable || installed) && (
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <h2 className="text-sm font-semibold text-muted-foreground">Install App</h2>
+            <div className="mt-3">
+              {installed ? (
+                <div className="flex items-center gap-2 text-sm text-income">
+                  <Smartphone className="h-4 w-4" />
+                  SpendWise installed successfully!
+                </div>
+              ) : (
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                    <Smartphone className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-foreground">Install SpendWise</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Add to your home screen for a faster, native-like experience — works offline too.
+                    </p>
+                    <button
+                      id="settings-install-pwa-btn"
+                      onClick={handleInstallPWA}
+                      className="mt-3 flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary/90"
+                    >
+                      <Download className="h-3.5 w-3.5" /> Add to Home Screen
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Logout */}
         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">

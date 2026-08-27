@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { WifiOff, Download, RefreshCw, Cloud } from 'lucide-react'
+import { WifiOff, RefreshCw, Cloud } from 'lucide-react'
 import { syncManager } from '@/lib/sync-manager'
 import { useSync } from '@/lib/use-sync'
 
@@ -10,12 +10,16 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
+// Expose install prompt globally so Settings page can trigger it
+declare global {
+  interface Window {
+    __swInstallPrompt?: BeforeInstallPromptEvent
+  }
+}
+
 export default function PWAProvider({ children }: { children: React.ReactNode }) {
   const [isOffline, setIsOffline] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [showInstall, setShowInstall] = useState(false)
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
-  const [dismissedInstall, setDismissedInstall] = useState(false)
   const { status, pendingCount } = useSync()
 
   useEffect(() => {
@@ -27,9 +31,7 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
 
     navigator.serviceWorker.register('/sw.js').catch(() => {})
 
-    const goOffline = () => {
-      setIsOffline(true)
-    }
+    const goOffline = () => setIsOffline(true)
     const goOnline = () => {
       setIsOffline(false)
       syncManager.processQueue().then(() => syncManager.pullChanges())
@@ -39,8 +41,10 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
 
     const handleInstall = (e: Event) => {
       e.preventDefault()
-      setDeferredPrompt(e as BeforeInstallPromptEvent)
-      if (!dismissedInstall) setShowInstall(true)
+      // Store on window so Settings page can access it at any time
+      window.__swInstallPrompt = e as BeforeInstallPromptEvent
+      // Dispatch event so Settings page can re-render if open
+      window.dispatchEvent(new Event('spendwise-install-available'))
     }
     window.addEventListener('beforeinstallprompt', handleInstall)
 
@@ -49,16 +53,7 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
       window.removeEventListener('online', goOnline)
       window.removeEventListener('beforeinstallprompt', handleInstall)
     }
-  }, [dismissedInstall])
-
-  async function handleInstall() {
-    if (!deferredPrompt) return
-    const promptEvent = deferredPrompt as BeforeInstallPromptEvent
-    promptEvent.prompt()
-    const result = await promptEvent.userChoice
-    if (result.outcome === 'accepted') setShowInstall(false)
-    setDeferredPrompt(null)
-  }
+  }, [])
 
   if (!mounted) return <>{children}</>
 
@@ -84,30 +79,6 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
         <div className="fixed top-4 right-4 z-50 flex items-center gap-1.5 rounded-full bg-amber-500/90 backdrop-blur-sm px-3 py-1 text-[10px] font-medium text-white shadow-lg">
           <Cloud className="h-3 w-3" />
           {pendingCount} Pending Sync
-        </div>
-      )}
-
-      {showInstall && (
-        <div className="fixed bottom-36 left-4 right-4 z-50 mx-auto max-w-sm rounded-2xl border border-border bg-card p-4 shadow-xl">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-              <Download className="h-5 w-5 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground">Install SpendWise</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">Add to home screen for quick access</p>
-              <div className="mt-3 flex gap-2">
-                <button onClick={handleInstall}
-                  className="rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-white hover:bg-primary/90">
-                  Install
-                </button>
-                <button onClick={() => { setShowInstall(false); setDismissedInstall(true) }}
-                  className="rounded-lg border border-border px-4 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground">
-                  Later
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </>
