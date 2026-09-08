@@ -6,6 +6,7 @@ vi.mock('next/navigation', () => ({
   usePathname: () => mockPathname(),
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }))
+// eslint-disable-next-line @next/next/no-img-element
 vi.mock('next/image', () => ({ default: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} /> }))
 
 vi.mock('@/lib/theme', () => ({

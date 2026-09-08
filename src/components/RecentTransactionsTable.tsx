@@ -1,11 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import Link from 'next/link'
-import { getRecentTransactions } from '@/lib/transaction-service'
-import { getCategoryById } from '@/lib/category-service'
 import { formatCurrency } from '@/lib/currency'
-import type { Transaction, Category } from '@/types'
+import { useAppData } from '@/lib/app-data-context'
 
 function relativeDateTime(dateStr: string, createdAt: string): string {
   const [y, m, d] = dateStr.split('-').map(Number)
@@ -22,52 +20,23 @@ function relativeDateTime(dateStr: string, createdAt: string): string {
 }
 
 export default function RecentTransactionsTable() {
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loaded, setLoaded] = useState(false)
+  const { transactions, categories } = useAppData()
 
-  async function loadTransactions() {
-    const txs = await getRecentTransactions(3)
-    const catPromises = txs.map((tx) => getCategoryById(tx.categoryId))
-    const cats = (await Promise.all(catPromises)).filter(Boolean) as Category[]
-    setTransactions(txs)
-    setCategories(cats)
-    setLoaded(true)
-  }
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadTransactions()
-  }, [])
-
-  useEffect(() => {
-    const handler = () => loadTransactions()
-    window.addEventListener('transaction-updated', handler)
-    return () => window.removeEventListener('transaction-updated', handler)
-  }, [])
+  const recent = useMemo(() => transactions.slice(0, 3), [transactions])
 
   const getCat = (id: string) =>
     categories.find((c) => c.id === id || c.name.toLowerCase() === id.toLowerCase()) ||
     categories.find((c) => id.toLowerCase().includes(c.name.toLowerCase()))
 
-  if (!loaded) {
-    return (
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-        <div className="h-5 w-36 animate-pulse rounded bg-muted" />
-        <div className="mt-4 space-y-3">{[1, 2, 3].map((i) => (<div key={i} className="h-12 animate-pulse rounded bg-muted" />))}</div>
-      </div>
-    )
-  }
-
   return (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <h3 className="text-base font-semibold text-foreground">Recent Transactions</h3>
-        {transactions.length > 0 && (
+        {recent.length > 0 && (
           <Link href="/transactions" className="text-xs font-medium text-primary hover:underline">See all</Link>
         )}
       </div>
-      {transactions.length === 0 ? (
+      {recent.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-8 text-sm text-muted-foreground">
           <p>No transactions yet</p>
           <p className="mt-1">Tap + to add your first transaction.</p>
@@ -83,7 +52,7 @@ export default function RecentTransactionsTable() {
               </tr>
             </thead>
             <tbody>
-              {transactions.map((tx) => {
+              {recent.map((tx) => {
                 const cat = getCat(tx.categoryId)
                 const isIncome = tx.type === 'income'
                 return (

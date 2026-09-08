@@ -57,6 +57,8 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
     showLoading()
     try {
       await login(email.trim(), password)
+      // Signal PWAProvider to show install popup once on first login
+      localStorage.setItem('spendwise-just-logged-in', '1')
       router.push('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')

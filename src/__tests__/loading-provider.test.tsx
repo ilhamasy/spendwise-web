@@ -1,9 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import React from 'react'
 import { LoadingProvider, useLoading } from '@/components/LoadingProvider'
 
 vi.mock('next/image', () => ({
+  // eslint-disable-next-line @next/next/no-img-element
   default: ({ alt }: { alt: string }) => <img alt={alt} />,
 }))
 

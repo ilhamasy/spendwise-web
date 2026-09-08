@@ -13,17 +13,19 @@ afterEach(() => {
 describe('BottomNav', () => {
   it('renders all 5 navigation items', () => {
     render(<BottomNav />)
-    expect(screen.getByText('Dashboard')).toBeInTheDocument()
-    expect(screen.getByText('Transactions')).toBeInTheDocument()
-    expect(screen.getByText('Goals')).toBeInTheDocument()
-    expect(screen.getByText('Budget')).toBeInTheDocument()
-    expect(screen.getByText('Settings')).toBeInTheDocument()
+    // BottomNav renders two pills (light + dark mode), so each label appears twice
+    expect(screen.getAllByText('Dashboard').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Transactions').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Goals').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Budget').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Settings').length).toBeGreaterThanOrEqual(1)
   })
 
   it('highlights active route', () => {
     render(<BottomNav />)
-    const links = screen.getAllByText('Dashboard')
-    const dashboardLink = links[0].closest('a')
-    expect(dashboardLink?.className).toContain('6e44ff')
+    // Active link is indicated via aria-current="page" (color is in inline style, not className)
+    const activeLinks = screen.getAllByRole('link', { current: 'page' })
+    expect(activeLinks.length).toBeGreaterThanOrEqual(1)
+    expect(activeLinks[0]).toHaveAttribute('href', '/dashboard')
   })
 })

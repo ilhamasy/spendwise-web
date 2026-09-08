@@ -1,29 +1,32 @@
-async function request<T>(endpoint: string, options: (RequestInit & { silent?: boolean }) = {}): Promise<T> {
-  const { silent, ...fetchOptions } = options
-  const showOverlay = !silent && typeof window !== 'undefined'
-  if (showOverlay) {
-    window.dispatchEvent(new CustomEvent('spendwise-loading-start'))
+export function isSafeApiEndpoint(endpoint: string): boolean {
+  if (!endpoint) return false
+  if (endpoint.startsWith('/') || endpoint.startsWith('./')) return true
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+  if (baseUrl && endpoint.startsWith(baseUrl)) return true
+  return false
+}
+
+async function request<T>(endpoint: string, options: RequestInit & { silent?: boolean } = {}): Promise<T> {
+  if (!isSafeApiEndpoint(endpoint)) {
+    throw new Error('SSRF Protection: Invalid or untrusted API endpoint')
   }
-  try {
-    const res = await fetch(endpoint, {
-      ...fetchOptions,
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(fetchOptions.headers as Record<string, string>),
-      },
-    })
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ message: res.statusText }))
-      throw new Error(err.message || `HTTP ${res.status}`)
-    }
-    if (res.status === 204) return {} as T
-    return res.json()
-  } finally {
-    if (showOverlay) {
-      window.dispatchEvent(new CustomEvent('spendwise-loading-end'))
-    }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { silent: _silent, ...fetchOptions } = options
+  const res = await fetch(endpoint, {
+    ...fetchOptions,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(fetchOptions.headers as Record<string, string>),
+    },
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: res.statusText }))
+    throw new Error(err.message || `HTTP ${res.status}`)
   }
+  if (res.status === 204) return {} as T
+  return res.json()
 }
 
 export const api = {
@@ -44,6 +47,12 @@ export const api = {
 
   createTransaction: (data: { type: string; amount: number; categoryId: string; occurredAt: string; note?: string }) =>
     request<{ id: string }>('/api/v1/transactions', { method: 'POST', body: JSON.stringify(data) }),
+
+  updateTransaction: (id: string, data: { type?: string; amount?: number; categoryId?: string; occurredAt?: string; note?: string }) =>
+    request<{ id: string }>('/api/v1/transactions/' + id, { method: 'PUT', body: JSON.stringify(data) }),
+
+  deleteTransaction: (id: string) =>
+    request<void>('/api/v1/transactions/' + id, { method: 'DELETE' }),
 
   createGoal: (data: { name: string; targetAmount: number; currentSaved?: number; targetDate?: string }) =>
     request<{ id: string }>('/api/v1/goals', { method: 'POST', body: JSON.stringify(data) }),

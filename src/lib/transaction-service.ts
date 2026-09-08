@@ -76,18 +76,25 @@ export async function createTransaction(input: CreateTransactionInput): Promise<
       }), 2)
       transaction.id = serverTxn.id
       await db.transactions.add(transaction)
+      // Successfully synced online — no need to queue
       return transaction
     } catch {
-      // API failed, use local + queue
+      // API failed while online — save locally and queue for later sync
+      await db.transactions.add(transaction)
+      await syncManager.addToQueue({
+        entityType: 'transaction', entityId: localId, operation: 'CREATE',
+        payload: transaction, timestamp: now,
+      })
+      return transaction
     }
   }
 
+  // Offline path
   await db.transactions.add(transaction)
   await syncManager.addToQueue({
     entityType: 'transaction', entityId: localId, operation: 'CREATE',
     payload: transaction, timestamp: now,
   })
-
   return transaction
 }
 
@@ -116,6 +123,23 @@ export async function updateTransaction(
     updatedAt: new Date().toISOString(),
   }
   await db.transactions.put(updated)
+
+  if (navigator.onLine) {
+    try {
+      await api.updateTransaction(id, {
+        type: updated.type,
+        amount: updated.amount,
+        categoryId: updated.categoryId,
+        occurredAt: updated.occurredAt,
+        note: updated.note,
+      })
+      // Synced online — no queue needed
+      return updated
+    } catch {
+      // API failed — queue for later
+    }
+  }
+
   await syncManager.addToQueue({
     entityType: 'transaction', entityId: id, operation: 'UPDATE',
     payload: updated, timestamp: updated.updatedAt,
@@ -127,6 +151,17 @@ export async function deleteTransaction(id: string): Promise<boolean> {
   const existing = await db.transactions.get(id)
   if (!existing) return false
   await db.transactions.delete(id)
+
+  if (navigator.onLine) {
+    try {
+      await api.deleteTransaction(id)
+      // Synced online — no queue needed
+      return true
+    } catch {
+      // API failed — queue for later
+    }
+  }
+
   await syncManager.addToQueue({
     entityType: 'transaction', entityId: id, operation: 'DELETE',
     payload: { id }, timestamp: new Date().toISOString(),

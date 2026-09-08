@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useMemo } from 'react'
 import walletIcon from '@/assets/icons8-wallet-94.png'
 import salaryIcon from '@/assets/icons8-salary-94.png'
 import cartIcon from '@/assets/icons8-shopping-cart-94.png'
@@ -13,10 +13,8 @@ import SavingGoalsCard from '@/components/SavingGoalsCard'
 import { BudgetSummaryCard } from '@/components/BudgetSummaryCard'
 import DateFilter, { getFilterDateRange, getChartYear } from '@/components/DateFilter'
 import type { FilterPeriod } from '@/components/DateFilter'
-import { getTotalIncome, getTotalExpense } from '@/lib/transaction-service'
-import { getTotalSavings } from '@/lib/goal-service'
 import { formatCurrency } from '@/lib/currency'
-import { db } from '@/lib/db'
+import { useAppData } from '@/lib/app-data-context'
 
 function computeChange(current: number, previous: number): { change: string; isPositive: boolean } {
   if (previous === 0) return { change: '+0%', isPositive: true }
@@ -26,67 +24,85 @@ function computeChange(current: number, previous: number): { change: string; isP
 }
 
 export default function DashboardPage() {
+  const { transactions, goals } = useAppData()
   const [period, setPeriod] = useState<FilterPeriod>('month')
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
-  const [minDate, setMinDate] = useState('2024-01-01')
-  const [balance, setBalance] = useState(0)
-  const [income, setIncome] = useState(0)
-  const [expense, setExpense] = useState(0)
-  const [savings, setSavings] = useState(0)
-  const [incomeChange, setIncomeChange] = useState({ change: '+0%', isPositive: true })
-  const [expenseChange, setExpenseChange] = useState({ change: '+0%', isPositive: true })
-  const [savingsChange, setSavingsChange] = useState({ change: '+0%', isPositive: true })
-  const [chartYear, setChartYear] = useState(new Date().getFullYear())
 
-  useEffect(() => {
-    db.transactions.orderBy('occurredAt').first().then((first) => {
-      if (first) setMinDate(first.occurredAt)
-    })
-  }, [])
+  // All computations are synchronous from in-memory data — no loading needed
+  const { start, end } = useMemo(
+    () => getFilterDateRange(period, customStart, customEnd),
+    [period, customStart, customEnd],
+  )
 
-  const fetchData = useCallback(async () => {
-    const { start, end } = getFilterDateRange(period, customStart, customEnd)
+  const chartYear = useMemo(
+    () => getChartYear(period, customStart, customEnd),
+    [period, customStart, customEnd],
+  )
 
-    const [totalIncome, totalExpense, currentSavings] = await Promise.all([
-      getTotalIncome(start, end),
-      getTotalExpense(start, end),
-      getTotalSavings(),
-    ])
+  const minDate = useMemo(
+    () =>
+      transactions.length > 0
+        ? [...transactions].sort((a, b) => a.occurredAt.localeCompare(b.occurredAt))[0].occurredAt
+        : '2024-01-01',
+    [transactions],
+  )
 
-    const rangeDays = (new Date(end).getTime() - new Date(start).getTime()) / 86400000
-    const prevStart = new Date(new Date(start).getTime() - (rangeDays + 1) * 86400000).toISOString().split('T')[0]
-    const prevEnd = new Date(new Date(start).getTime() - 86400000).toISOString().split('T')[0]
+  const income = useMemo(
+    () =>
+      transactions
+        .filter((t) => t.type === 'income' && t.occurredAt >= start && t.occurredAt <= end)
+        .reduce((s, t) => s + t.amount, 0),
+    [transactions, start, end],
+  )
 
-    const [prevIncome, prevExpense] = await Promise.all([
-      getTotalIncome(prevStart, prevEnd),
-      getTotalExpense(prevStart, prevEnd),
-    ])
+  const expense = useMemo(
+    () =>
+      transactions
+        .filter((t) => t.type === 'expense' && t.occurredAt >= start && t.occurredAt <= end)
+        .reduce((s, t) => s + t.amount, 0),
+    [transactions, start, end],
+  )
 
-    setBalance(totalIncome - totalExpense + currentSavings)
-    setIncome(totalIncome)
-    setExpense(totalExpense)
-    setSavings(currentSavings)
-    setIncomeChange(computeChange(totalIncome, prevIncome))
-    setExpenseChange(computeChange(totalExpense, prevExpense))
-    setSavingsChange(computeChange(currentSavings, currentSavings > 0 ? currentSavings * 0.9 : 0))
-    setChartYear(getChartYear(period, customStart, customEnd))
-  }, [period, customStart, customEnd])
+  const savings = useMemo(
+    () =>
+      goals
+        .filter((g) => g.status === 'active')
+        .reduce((s, g) => s + g.currentSaved, 0),
+    [goals],
+  )
 
-   
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchData()
-  }, [fetchData])
+  const balance = income - expense + savings
 
-   
-  useEffect(() => {
-    const handler = () => fetchData()
-    window.addEventListener('transaction-updated', handler)
-    return () => window.removeEventListener('transaction-updated', handler)
-  }, [fetchData])
+  // Previous period for percentage change
+  const rangeDays = (new Date(end).getTime() - new Date(start).getTime()) / 86400000
+  const prevStart = new Date(new Date(start).getTime() - (rangeDays + 1) * 86400000)
+    .toISOString()
+    .split('T')[0]
+  const prevEnd = new Date(new Date(start).getTime() - 86400000).toISOString().split('T')[0]
+
+  const prevIncome = useMemo(
+    () =>
+      transactions
+        .filter((t) => t.type === 'income' && t.occurredAt >= prevStart && t.occurredAt <= prevEnd)
+        .reduce((s, t) => s + t.amount, 0),
+    [transactions, prevStart, prevEnd],
+  )
+
+  const prevExpense = useMemo(
+    () =>
+      transactions
+        .filter(
+          (t) => t.type === 'expense' && t.occurredAt >= prevStart && t.occurredAt <= prevEnd,
+        )
+        .reduce((s, t) => s + t.amount, 0),
+    [transactions, prevStart, prevEnd],
+  )
 
   const balanceChange = computeChange(balance, balance)
+  const incomeChange = computeChange(income, prevIncome)
+  const expenseChange = computeChange(expense, prevExpense)
+  const savingsChange = computeChange(savings, savings > 0 ? savings * 0.9 : 0)
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
