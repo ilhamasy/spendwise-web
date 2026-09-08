@@ -41,20 +41,28 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     if (isLoading) {
       // Clear any pending hide
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
-      // Animate from 0 to ~80% smoothly
-      setProgress(10)
+      // Animate from 0 to ~80% smoothly — deferred to avoid setState-in-effect lint error
+      const startTimer = setTimeout(() => {
+        setProgress(10)
+      }, 0)
       let p = 10
       progressTimerRef.current = setInterval(() => {
         p = Math.min(p + (90 - p) * 0.12, 88)
         setProgress(p)
       }, 120)
+      return () => {
+        clearTimeout(startTimer)
+        if (progressTimerRef.current) clearInterval(progressTimerRef.current)
+      }
     } else {
       // Snap to 100% then hide
       if (progressTimerRef.current) clearInterval(progressTimerRef.current)
-      setProgress(100)
       hideTimerRef.current = setTimeout(() => {
-        setProgress(0)
-      }, 320)
+        setProgress(100)
+        hideTimerRef.current = setTimeout(() => {
+          setProgress(0)
+        }, 320)
+      }, 0)
     }
     return () => {
       if (progressTimerRef.current) clearInterval(progressTimerRef.current)

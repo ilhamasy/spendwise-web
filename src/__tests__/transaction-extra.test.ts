@@ -10,7 +10,6 @@ vi.mock('@/lib/sync-manager', () => ({
 }))
 
 import {
-  createTransaction,
   getTransactionById,
   getTransactionsByDateRange,
   getTransactionsByMonth,

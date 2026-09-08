@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
   ReceiptText,
@@ -29,6 +29,7 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const { user, logout } = useAuth()
   const { resolved, setTheme } = useTheme()
   const [unsavedLogoutOpen, setUnsavedLogoutOpen] = useState(false)
@@ -39,14 +40,14 @@ export default function Sidebar() {
       setUnsavedLogoutOpen(true)
     } else {
       await logout(true)
-      window.location.href = '/'
+      router.push('/')
     }
   }
 
   async function handleConfirmLogout() {
     setUnsavedLogoutOpen(false)
     await logout(true)
-    window.location.href = '/'
+    router.push('/')
   }
 
   return (

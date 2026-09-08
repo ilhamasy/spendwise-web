@@ -43,6 +43,7 @@ describe('AuthProvider - offline register', () => {
       const auth = useAuth()
       React.useEffect(() => {
         auth.register('Offline User', 'offline@test.com', 'password123').then(() => { done = true })
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       }, [])
       return null
     }

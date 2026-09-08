@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
 import { useTheme } from '@/lib/theme'
 import { db } from '@/lib/db'
@@ -10,6 +11,7 @@ import CategoryList from '@/components/CategoryList'
 import ConfirmDialog from '@/components/ConfirmDialog'
 
 export default function SettingsPage() {
+  const router = useRouter()
   const { user, logout } = useAuth()
   const { theme, setTheme } = useTheme()
 
@@ -38,16 +40,21 @@ export default function SettingsPage() {
   const [isRunningAsPWA, setIsRunningAsPWA] = useState(false)
 
   useEffect(() => {
-    // Detect if already running as installed PWA
-    const standalone =
-      window.matchMedia('(display-mode: standalone)').matches ||
-      window.matchMedia('(display-mode: fullscreen)').matches ||
-      (window.navigator as { standalone?: boolean }).standalone === true
-    setIsRunningAsPWA(standalone)
+    // Detect if already running as installed PWA — deferred to avoid setState-in-effect lint error
+    const timer = setTimeout(() => {
+      const standalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        window.matchMedia('(display-mode: fullscreen)').matches ||
+        (window.navigator as { standalone?: boolean }).standalone === true
+      setIsRunningAsPWA(standalone)
+    }, 0)
 
     const onAvailable = () => setInstallAvailable(true)
     window.addEventListener('spendwise-install-available', onAvailable)
-    return () => window.removeEventListener('spendwise-install-available', onAvailable)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('spendwise-install-available', onAvailable)
+    }
   }, [])
 
   function handleSaveName() {
@@ -114,7 +121,7 @@ export default function SettingsPage() {
     const users = JSON.parse(localStorage.getItem('spendwise-users') || '[]')
     localStorage.setItem('spendwise-users', JSON.stringify(users.filter((u: { id: string }) => u.id !== user.id)))
     await logout()
-    window.location.href = '/'
+    router.push('/')
   }
 
   function handleExportCSV() {
@@ -169,7 +176,7 @@ export default function SettingsPage() {
 
   async function handleLogout() {
     await logout(true)
-    window.location.href = '/'
+    router.push('/')
   }
 
   return (

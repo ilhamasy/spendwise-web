@@ -2,7 +2,8 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/dashboard' }))
-vi.mock('next/image', () => ({ default: ({ src }: { src: string }) => <img src={src} /> }))
+// eslint-disable-next-line @next/next/no-img-element
+vi.mock('next/image', () => ({ default: ({ src, alt }: { src: string; alt?: string }) => <img src={src} alt={alt ?? ''} /> }))
 vi.mock('@/lib/auth', () => ({ useAuth: () => ({ logout: vi.fn(), user: null }), AuthProvider: ({ c }: { c: React.ReactNode }) => c }))
 vi.mock('@/lib/theme', () => ({ ThemeProvider: ({ c }: { c: React.ReactNode }) => c, useTheme: () => ({ resolved: 'light' }) }))
 vi.mock('@/lib/sync-manager', () => ({ syncManager: { addToQueue: () => Promise.resolve(), processQueue: () => Promise.resolve(), pullChanges: () => Promise.resolve(), getPendingCount: () => Promise.resolve(0), getStatus: () => 'idle', init: () => {}, destroy: () => {}, onStatusChange: () => () => {} } }))

@@ -14,7 +14,7 @@ vi.mock('@/lib/sync-manager', () => ({
 }))
 
 import { db } from '@/lib/db'
-import { formatCurrency, parseCurrencyInput, formatCurrencyInput } from '@/lib/currency'
+import { formatCurrency } from '@/lib/currency'
 import { cn, generateId } from '@/lib/utils'
 
 describe('Currency', () => {
